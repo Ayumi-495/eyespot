@@ -2,8 +2,8 @@
 library(easypackages)
 libraries(c("metafor", "tidyverse", "gt"))
 
-###########################################
-#  create original function for predator dataset
+
+##################### create original function for predator dataset #####################
 ## continuous data, proportion1 (proportion_all), proportion2 (proportion_bird))
 
 effect_lnRR_predator <- function(dt) 
@@ -95,8 +95,7 @@ effect_lnRR_predator <- function(dt)
   
 }
 
-#####################################################
-#  create original function for prey dataset
+#####################  create original function for prey dataset #####################
 
 effect_lnRR_prey <- function(dt) 
 {
@@ -158,23 +157,22 @@ effect_lnRR_prey <- function(dt)
   
 }
 
-#####################################################
 
-# read test dataset
+##################### check original functions #####################
 
+## read test dataset
 dt_predator <- read.csv("predator_test.csv", header = T)
 dt_prey     <- read.csv("prey_test.csv", header = T)
 
 
-## check original functions
-### predator dataset
+
+## predator dataset
 test_lnRR_predator  <- effect_lnRR_predator(dt_predator)
 
-### prey dataset
+## prey dataset
 test_lnRR_prey <- effect_lnRR_prey(dt_prey)
 
-### see tables
+## see tables
 test_lnRR_predator %>% gt()
 test_lnRR_prey     %>% gt()
-
 
