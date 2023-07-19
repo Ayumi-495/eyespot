@@ -158,20 +158,3 @@ effect_lnRR_prey <- function(dt)
   
 }
 
-
-##################### check original functions #####################
-
-## read test dataset
-dt_predator <- read.csv("predator_test.csv", header = T)
-dt_prey     <- read.csv("prey_test.csv", header = T)
-
-## predator dataset
-test_lnRR_predator  <- effect_lnRR_predator(dt_predator)
-
-## prey dataset
-test_lnRR_prey <- effect_lnRR_prey(dt_prey)
-
-## see tables
-test_lnRR_predator %>% gt()
-test_lnRR_prey     %>% gt()
-
