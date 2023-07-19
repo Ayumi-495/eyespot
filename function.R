@@ -8,6 +8,7 @@ libraries(c("metafor", "tidyverse", "gt"))
 
 effect_lnRR_predator <- function(dt) 
 {
+
   ## copy dataset for adding effect size and its variation (lnRR /lnRR_var) column
   dt1 <- dt %>% 
     mutate(lnRR     = NA,
@@ -163,8 +164,6 @@ effect_lnRR_prey <- function(dt)
 ## read test dataset
 dt_predator <- read.csv("predator_test.csv", header = T)
 dt_prey     <- read.csv("prey_test.csv", header = T)
-
-
 
 ## predator dataset
 test_lnRR_predator  <- effect_lnRR_predator(dt_predator)
