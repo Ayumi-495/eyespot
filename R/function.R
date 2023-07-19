@@ -1,6 +1,6 @@
 
 library(easypackages)
-libraries(c("metafor", "tidyverse"))
+libraries(c("metafor", "tidyverse", "gt"))
 
 
 ##################### create original function for predator dataset #####################
@@ -116,7 +116,6 @@ effect_lnRR_prey <- function(dt)
     C_mean <- dt1$C_mean[i]
     T_sd <- dt1$T_sd[i]
     C_sd <- dt1$C_sd[i]
-    Measure <- dt1$Measure[i]
     Response <- dt1$Response[i]
     
     ## continuous data - using escalc() (metafor package)
@@ -157,4 +156,14 @@ effect_lnRR_prey <- function(dt)
   return(dt1)
   
 }
+##################### check original functions #####################
 
+## predator dataset - import predator_19072023.csv from data folder
+test_lnRR_predator  <- effect_lnRR_predator(predator)
+
+## prey dataset - import prey_19072023.csv from data folder
+test_lnRR_prey <- effect_lnRR_prey(prey)
+
+## see tables
+test_lnRR_predator %>% gt()
+test_lnRR_prey     %>% gt()
