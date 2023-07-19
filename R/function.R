@@ -156,7 +156,6 @@ effect_lnRR_prey <- function(dt)
   return(dt1)
   
 }
-
 ##################### check original functions #####################
 
 ## predator dataset - import predator_19072023.csv from data folder
