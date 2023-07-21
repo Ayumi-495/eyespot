@@ -56,9 +56,10 @@ effect_lnRR_predator <- function(dt)
       C_mean <- asin_trans(C_mean)
       
       ### calculate lnRR and lnRR variance   
+      # Fixed - () wrong
       lnRR_pro1 <- log(T_mean / C_mean)
-      lnRR_var_pro1 <- (1 / sqrt(8))^2 * (1 / (T_mean^2) * Tn + 
-                                            1 / (C_mean^2) * Cn)
+      lnRR_var_pro1 <- (1 / sqrt(8))^2 * (1 / (T_mean^2 * Tn) +
+                                            1 / (C_mean^2 * Cn))
       
       dt1$lnRR[i] <- lnRR_pro1
       dt1$lnRR_var[i] <- lnRR_var_pro1
@@ -73,18 +74,25 @@ effect_lnRR_predator <- function(dt)
     else if (Response == "proportion2") {
       
       ### transform proportion mean value
-      asin_trans <- function(proportion) { asin(sqrt(proportion)) }
+      asin_trans <- function(proportion) {
+         trans <- asin(sqrt(proportion)) 
+         trans
+         }
       
-      T_SD <- sqrt((1/sqrt(8))^2/(4*(T_mean)*(1-(T_mean))))
-      C_SD <- sqrt((1/sqrt(8))^2/(4*(C_mean)*(1-(C_mean))))
-      
+      # TODO this was wrong
+      #T_SD <- sqrt((1/sqrt(8))^2/(4*(T_mean)*(1-(T_mean))))
+      #C_SD <- sqrt((1/sqrt(8))^2/(4*(C_mean)*(1-(C_mean))))
+      T_SD <- T_sd^2/(4*(T_mean)*(1-(T_mean)))
+      C_SD <- C_sd^2/(4*(C_mean)*(1-(C_mean)))
+
       T_mean <- asin_trans(T_mean)
       C_mean <- asin_trans(C_mean)
       
       ### calculate lnRR and lnRR variance 
+      # () was wrong
       lnRR_pro2 <- log(T_mean / C_mean)
-      lnRR_var_pro2 <- (T_SD)^2 * (1 / (T_mean^2) * Tn) +
-        (C_SD)^2*(1 / (C_mean^2) * Cn)
+      lnRR_var_pro2 <- (T_SD)^2 * (1 / (T_mean^2 * Tn)) +
+        (C_SD)^2 * (1 / (C_mean^2 * Cn))
       
       dt1$lnRR[i] <- lnRR_pro2
       dt1$lnRR_var[i] <- lnRR_var_pro2
@@ -144,8 +152,10 @@ effect_lnRR_prey <- function(dt)
       
       ### calculate lnRR and lnRR variance   
       lnRR_pro1 <- log(T_proportion / C_proportion)
-      lnRR_var_pro1 <- (1 / sqrt(8))^2 * (1 / (T_proportion^2) * Tn + 
-                                            1 / (C_proportion^2) * Cn)
+      #lnRR_var_pro1 <- (1 / sqrt(8))^2 * (1 / (T_proportion^2) * Tn + 
+                                            #1 / (C_proportion^2) * Cn)
+      lnRR_var_pro1 <- (1 / sqrt(8))^2 * (1 / (T_proportion^2 * Tn) + 
+                                            1 / (C_proportion^2 * Cn))
       
       dt1$lnRR[i] <- lnRR_pro1
       dt1$lnRR_var[i] <- lnRR_var_pro1
