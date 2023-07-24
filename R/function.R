@@ -25,10 +25,10 @@ effect_lnRR <- function(dt) {
     
     Tn <- dt1$Tn[i]
     Cn <- dt1$Cn[i]
-    T_proportion <- dt1$T_proportion[i]
-    C_proportion <- dt1$C_proportion[i]
     T_mean <- dt1$T_mean[i]
     C_mean <- dt1$C_mean[i]
+    T_proportion <- dt1$T_proportion[i]
+    C_proportion <- dt1$C_proportion[i]
     T_sd <- dt1$T_sd[i]
     C_sd <- dt1$C_sd[i]
     Response <- dt1$Response[i]
@@ -95,7 +95,7 @@ effect_lnRR <- function(dt) {
       # calculate lnRR and lnRR variance 
       lnRR_pro2 <- log(T_proportion / C_proportion)
       lnRR_var_pro2 <- (T_SD)^2 * (1 / (T_proportion^2 * Tn)) +
-                       (C_SD)^2 * (1 / (C_proportion^2 * Cn))
+                          (C_SD)^2 * (1 / (C_proportion^2 * Cn))
       
       dt1$lnRR[i] <- lnRR_pro2
       dt1$lnRR_var[i] <- lnRR_var_pro2
@@ -106,7 +106,6 @@ effect_lnRR <- function(dt) {
   return(dt1)
   
 }
-
 
 
 # please ignore the part below - I will delete this later
