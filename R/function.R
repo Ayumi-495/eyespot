@@ -77,7 +77,7 @@ effect_lnRR <- function(dt) {
       
     }
     
-   # proportion data (exist sd values) 
+    # proportion data (exist sd values) 
     else if (Response == "proportion2") {
       
       # transform proportion mean value
