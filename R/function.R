@@ -2,15 +2,21 @@
 library(metafor)
 library(tidyverse)
 
-# TODO insert - when "C_mean = 0, C_proportion = 0, C_sd = 0" replace 0.01 or minimum values using ifelse()
+## calculate effect size and its variation ##
 
-
-## function for predator dataset ##
-effect_lnRR_pred <- function(dt) 
-  {
+effect_lnRR <- function(dt) {
   
-# copy dataset for adding effect size and 
-# its variation (lnRR /lnRR_var) column
+  # replace 0 in "C_mean", "T_sd", "C_sd", "C_proportion" with each minimum values
+  dt <- dt %>% 
+    mutate(C_mean = ifelse(C_mean == 0, 0.04, C_mean))
+  dt <- dt %>% 
+    mutate(T_sd = ifelse(T_sd == 0, 0.01, T_sd))
+  dt <- dt %>% 
+    mutate(C_sd = ifelse(C_sd == 0, 0.05, C_sd))
+  dt <- dt %>% 
+    mutate(C_proportion = ifelse(C_proportion == 0, 0.01, C_proportion))
+  
+　# copy dataset for adding effect size and its variation (lnRR /lnRR_var) column
   dt1 <- dt %>% 
     mutate(lnRR     = NA,
            lnRR_var = NA)
@@ -26,6 +32,7 @@ effect_lnRR_pred <- function(dt)
     T_sd <- dt1$T_sd[i]
     C_sd <- dt1$C_sd[i]
     Response <- dt1$Response[i]
+    Measure <- dt1$Measure[i]
     
     # continuous data - using escalc() (metafor package)
     if (Response == "continuous") {
@@ -100,89 +107,95 @@ effect_lnRR_pred <- function(dt)
   
 }
 
-## function for prey dataset ##
-effect_lnRR_prey <- function(dt) 
-  {
-  
-    dt1 <- dt %>% 
-    mutate(lnRR     = NA,
-           lnRR_var = NA)
-  
-  for(i in seq_len(nrow(dt1))) {
-    
-    Tn <- dt1$Tn[i]
-    Cn <- dt1$Cn[i]
-    T_proportion <- dt1$T_proportion[i]
-    C_proportion <- dt1$C_proportion[i]
-    T_mean <- dt1$T_mean[i]
-    C_mean <- dt1$C_mean[i]
-    T_sd <- dt1$T_sd[i]
-    C_sd <- dt1$C_sd[i]
-    Response <- dt1$Response[i]
-    
-   # continuous data - using escalc() (metafor package)
-    if (Response == "continuous") {
-      
-      effect <- escalc(measure = "ROM", 
-                       n1i = Tn, n2i = Cn, 
-                       m1i = T_mean, m2 = C_mean, 
-                       sd1i = T_sd, sd2i = C_sd,
-                       var.names = c("lnRR", "lnRR_var")
-      )
-      
-      dt1$lnRR[i] <- effect$lnRR
-      dt1$lnRR_var[i] <- effect$lnRR_var
-      
-    }
-    
-    # proportion data (no sd values)
-    else if (Response == "proportion1") {
-      
-      # transform proportion mean value
-      asin_trans <- function(proportion) {
-        trans <- asin(sqrt(proportion)) 
-        trans
-      }
-      
-      T_proportion <- asin_trans(T_proportion)
-      C_proportion <- asin_trans(C_proportion)
-      
-      # calculate lnRR and lnRR variance   
-      lnRR_pro1 <- log(T_proportion / C_proportion)
-      lnRR_var_pro1 <- (1 / sqrt(8))^2 * (1 / (T_proportion^2 * Tn) + 
-                                            1 / (C_proportion^2 * Cn))
-      
-      dt1$lnRR[i] <- lnRR_pro1
-      dt1$lnRR_var[i] <- lnRR_var_pro1
-      
-    }
-    
-    # proportion data (exist sd values) 
-    else if (Response == "proportion2") {
-      
-      asin_trans <- function(proportion) {
-        trans <- asin(sqrt(proportion)) 
-        trans
-      }
-      
-      T_SD <- T_sd^2/(4*(T_proportion)*(1-(T_proportion)))
-      C_SD <- C_sd^2/(4*(C_proportion)*(1-(C_proportion)))
-      
-      T_proportion <- asin_trans(T_proportion)
-      C_proportion <- asin_trans(C_proportion)
-      
-      # calculate lnRR and lnRR variance 
-      lnRR_pro2 <- log(T_proportion / C_proportion)
-      lnRR_var_pro2 <- (T_SD)^2 * (1 / (T_proportion^2 * Tn)) +
-                       (C_SD)^2 * (1 / (C_proportion^2 * Cn))
-      
-      dt1$lnRR[i] <- lnRR_pro2
-      dt1$lnRR_var[i] <- lnRR_var_pro2
-      
-    }
-  }
-  
-  return(dt1)
-  
-}
 
+
+# please ignore the part below - I will delete this later
+# check whether "T_mean", "C_mean", "T_sd", "C_sd", "T_proportion", and "C_proportion" have 0 or not
+
+dat_pred %>%
+  filter(T_proportion == 0 | C_proportion == 0) %>%
+  select(T_proportion, C_proportion)
+
+dat_pred %>%
+  filter(T_mean == 0 | C_mean == 0) %>%
+  select(T_mean, C_mean)
+# A tibble: 1 × 2
+#     T_mean C_mean
+#     <dbl>  <dbl>
+#  1  0.813      0
+
+dat_pred %>%
+  filter(T_sd == 0 | C_sd == 0) %>%
+  select(T_sd, C_sd)
+# A tibble: 3 × 2
+#    T_sd   C_sd
+#   <dbl>  <dbl>
+# 1  0     0.0522
+# 2  1.52  0     
+# 3  0.961 0  
+
+dat_pred %>%
+  filter(C_mean != 0) %>%
+  arrange(C_mean) %>%
+  head(3) %>%
+  select(C_mean)
+# A tibble: 3 × 1
+#  C_mean
+#  <dbl>
+# 1 0.0426
+# 2 0.0426
+# 3 0.0447
+
+dat_pred %>%
+  filter(T_sd != 0) %>%
+  arrange(T_sd) %>%
+  head(3) %>%
+  select(T_sd)
+# A tibble: 3 × 1
+#    T_sd
+#   <dbl>
+# 1 0.0116
+# 2 0.0220
+# 3 0.0278
+
+dat_pred %>%
+  filter(C_sd != 0) %>%
+  arrange(C_sd) %>%
+  head(3) %>%
+  select(C_sd)
+# A tibble: 3 × 1
+#   C_sd
+#   <dbl>
+# 1 0.0522
+# 2 0.0522
+# 3 0.0545
+
+dat_prey %>%
+  filter(T_proportion == 0 | C_proportion == 0) %>%
+  select(T_proportion, C_proportion)
+# A tibble: 3 × 2
+#       T_proportion C_proportion
+# <dbl>     <dbl>
+#  1        0.184            0
+#  2        0.318            0
+#  3        0.660            0
+
+dat_prey %>%
+  filter(T_mean == 0 | C_mean == 0) %>%
+  select(T_mean, C_mean)
+
+dat_prey %>%
+  filter(T_sd == 0 | C_sd == 0) %>%
+  select(T_sd, C_sd)
+
+dat_prey %>%
+  filter(C_proportion != 0) %>%
+  arrange(C_proportion) %>%
+  head(3) %>%
+  select(C_proportion)
+# A tibble: 3 × 1
+# C_proportion
+#     <dbl>
+# 1  0.0107
+# 2  0.0107
+# 3  0.0183
