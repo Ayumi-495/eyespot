@@ -4,12 +4,22 @@ library(tidyverse)
 library(here)
 library(orchaRd)
 library(metafor)
+library(ape)
 
 # get data
-dat_prey <- read_csv(here("data/prey_19072023.csv"))
-dat_pred <- read_csv(here("data/predator_19072023.csv"))
+dat_prey <- read_csv(here("data/prey_22072023.csv"))
+dat_pred <- read_csv(here("data/predator_22072023.csv"))
+dat_prey <- dat_prey[1:146,] # exclude unclear report
 dim(dat_prey)
 dim(dat_pred)
+
+# get phylogeny
+# TODO how to get phylo and vcv from multiple phylogeny
+tree <- read.nexus(here("data/bird_phy.nex"))
+tree_1 <-  tree[[1]]
+plot(tree[[1]])
+tree_1 <- compute.brlen(tree_1)
+cor <- vcv(tree_1, cor = T)
 
 ##########
 # prey
@@ -21,70 +31,22 @@ dat_prey <- dat_prey %>%
 
 summary(dat_prey)
 
-# check whether "T_proportion" and "C_proportion" have 0 or not
-dat_prey %>%
-  filter(T_proportion == 0 | C_proportion == 0) %>%
-  select(T_proportion, C_proportion)
-# # A tibble: 3 × 2
-#   T_proportion C_proportion
-#          <dbl>        <dbl>
-# 1        0.184            0
-# 2        0.318            0
-# 3        0.660            0
-
-# check the samllest values in "C_proportion" apart from 0
-dat_prey %>%
-  filter(C_proportion != 0) %>%
-  arrange(C_proportion) %>%
-  head(3) %>%
-  select(C_proportion)
-
-#   # A tibble: 3 × 1
-#   C_proportion
-#          <dbl>
-# 1       0.0107
-# 2       0.0107
-# 3       0.0183
-
-# given this we should repliace 0 in "C_proportion" with 0.01
-dat_prey <- dat_prey %>%
-  mutate(C_proportion = ifelse(C_proportion == 0, 0.01, C_proportion))
-
-# check whether "T_meam" and "C_mean" have 0 or not 
-dat_prey %>%
-  filter(T_mean == 0 | C_mean == 0) %>%
-  select(T_mean, C_mean)
-
-# check whether "T_sd" and "C_sd" have 0 or not
-dat_prey %>%
-  filter(T_sd == 0 | C_sd == 0) %>%
-  select(T_sd, C_sd)
-
-
-dat1 <- effect_lnRR_prey(dat_prey)
+dat1 <- effect_lnRR(dat_prey)
 
 hist(dat1$lnRR) 
-
-# TODO something
 hist(dat1$lnRR_var)
 
-# this looks strange
-# TODO check 83rd row
-which(dat1$lnRR == min(dat$lnRR))
-
-hist(dat1$lnRR[-83])
-hist(log(dat1$lnRR_var[-83]))
+#which(dat1$lnRR == min(dat1$lnRR))
 
 # meta-analysis
 # TODO - get phylo, VCV and other things
-dat1$Obs_ID <- 1:nrow(dat1)
-dat1 <- dat1[-83, ]
+dat1$Shared_control_ID <- 1:nrow(dat1)
 
 ma_prey <- rma.mv(yi = lnRR,
        V = lnRR_var, 
        random = list(~1 | Study_ID,
-                     #~1 | Cohort_ID, #TODO  some missing values
-                     ~1 | Obs_ID),
+                     ~1 | Cohort_ID,
+                     ~1 | Shared_control_ID),
        #R = list(Phylo = cor_tree),
        test = "t",
        method = "REML", 
@@ -100,12 +62,13 @@ orchard_plot(ma_prey,
              xlab = "log response ratio (lnRR)")
 
 # meta-regression
+# eyespot or conspicuous?
 mr_prey <- rma.mv(yi = lnRR,
        V = lnRR_var, 
        mods = ~ Treatment_stimulus,
        random = list(~1 | Study_ID,
-                     #~1 | Cohort_ID, #TODO  some missing values
-                     ~1 | Obs_ID),
+                     ~1 | Cohort_ID,
+                     ~1 | Shared_control_ID),
        #R = list(Phylo = cor_tree),
        test = "t",
        method = "REML", 
@@ -114,20 +77,18 @@ mr_prey <- rma.mv(yi = lnRR,
 
 summary(mr_prey)
 
-
 orchard_plot(mr_prey,
              mod = "Treatment_stimulus",
              group = "Study_ID",
              xlab = "log response ratio (lnRR)")
 
-# eyespot size
-
+# size of pattern
 mr_prey1 <- rma.mv(yi = lnRR,
        V = lnRR_var, 
-       mods = ~ Diameter_eyespot,
+       mods = ~ Diameter_pattern,
        random = list(~1 | Study_ID,
-                     #~1 | Cohort_ID, #TODO  some missing values
-                     ~1 | Obs_ID),
+                     ~1 | Cohort_ID,
+                     ~1 | Shared_control_ID),
        #R = list(Phylo = cor_tree),
        test = "t",
        method = "REML", 
@@ -136,19 +97,22 @@ mr_prey1 <- rma.mv(yi = lnRR,
 
 summary(mr_prey1)
 
-
+bubble_prey1 <-  orchaRd::mod_results(mr_prey1, mod = "Diameter_pattern", group = "Study_ID")
 bubble_plot(mr_prey1,
-             mod = "Diameter_eyespot",
+             mod = "Diameter_pattern",
              group = "Study_ID",
-             xlab = "Eyespots size (mm)")
+             xlab = "size (mm)")
 
-# number of eyespots
+#FIXME - Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
+#replacement has 0 rows, data has 146
+
+# area of pattern
 mr_prey2 <- rma.mv(yi = lnRR,
        V = lnRR_var, 
-       mods = ~ Number_eyespot,
+       mods = ~ Area_pattern,
        random = list(~1 | Study_ID,
-                     #~1 | Cohort_ID, #TODO  some missing values
-                     ~1 | Obs_ID),
+                     ~1 | Cohort_ID, 
+                     ~1 | Shared_control_ID),
        #R = list(Phylo = cor_tree),
        test = "t",
        method = "REML", 
@@ -158,29 +122,89 @@ mr_prey2 <- rma.mv(yi = lnRR,
 summary(mr_prey2)
 
 bubble_plot(mr_prey2,
-             mod = "Number_eyespot",
+             mod = "Area_pattern",
              group = "Study_ID",
-             xlab = "Eyespot number")
+             xlab = "Area (mm2)")
 
-# Type_of_prey
+# number of pattern
 mr_prey3 <- rma.mv(yi = lnRR,
+                   V = lnRR_var, 
+                   mods = ~ Number_pattern,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Cohort_ID, 
+                                 ~1 | Shared_control_ID),
+                   #R = list(Phylo = cor_tree),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat1)
+
+summary(mr_prey3)
+
+bubble_plot(mr_prey3,
+            mod = "Number_pattern",
+            group = "Study_ID",
+            xlab = "Number")
+
+# type of prey
+mr_prey4 <- rma.mv(yi = lnRR,
        V = lnRR_var, 
-       mods = ~ Type_of_prey,
+       mods = ~ Type_prey,
        random = list(~1 | Study_ID,
-                     #~1 | Cohort_ID, #TODO  some missing values
-                     ~1 | Obs_ID),
+                     ~1 | Cohort_ID, 
+                     ~1 | Shared_control_ID),
        #R = list(Phylo = cor_tree),
        test = "t",
        method = "REML", 
        sparse = TRUE,
        data = dat1)
        
-summary(mr_prey3)
+summary(mr_prey4)
 
-orchard_plot(mr_prey3,
-             mod = "Type_of_prey",
+orchard_plot(mr_prey4,
+             mod = "Type_prey",
              group = "Study_ID",
              xlab = "Type of prey")
+
+# shape of prey
+mr_prey5 <- rma.mv(yi = lnRR,
+                   V = lnRR_var, 
+                   mods = ~ Shape_prey,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Cohort_ID, 
+                                 ~1 | Shared_control_ID),
+                   #R = list(Phylo = cor_tree),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat1)
+
+summary(mr_prey5)
+
+orchard_plot(mr_prey5,
+             mod = "Shape_prey",
+             group = "Study_ID",
+             xlab = "Shape of prey")
+
+# shape of pattern
+mr_prey6 <- rma.mv(yi = lnRR,
+                   V = lnRR_var, 
+                   mods = ~ Shape_pattern,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Cohort_ID, 
+                                 ~1 | Shared_control_ID),
+                   #R = list(Phylo = cor_tree),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat1)
+
+summary(mr_prey6)
+
+orchard_plot(mr_prey6,
+             mod = "Shape_pattern",
+             group = "Study_ID",
+             xlab = "Shape of pattern")
 
 ##########
 # predator
@@ -191,29 +215,19 @@ dat_pred <- dat_pred %>%
 
 summary(dat_pred)
 
-# check whether "T_mean" and "C_mean" have 0 or not
-dat_pred %>%
-  filter(T_mean == 0 | C_mean == 0) %>%
-  select(T_mean, C_mean)
-
-# repliace 0 in "C_mean" with 0.01
-# TODO - check whether this is correct
-dat_pred <- dat_pred %>%
-  mutate(C_mean = ifelse(C_mean == 0, 0.01, C_mean))
-
-dat2 <- effect_lnRR_predator(dat_pred)
+dat2 <- effect_lnRR(dat_pred)
 
 hist(dat2$lnRR) 
 hist(dat2$lnRR_var)
 
 # meta-analysis
-dat2$Obs_ID <- 1:nrow(dat2)
+dat2$Shared_control_ID <- 1:nrow(dat2)
 
 ma_pred <- rma.mv(yi = lnRR,
        V = lnRR_var, 
        random = list(~1 | Study_ID,
-                     #~1 | Cohort_ID, #TODO  some missing values
-                     ~1 | Obs_ID),
+                     ~1 | Cohort_ID, 
+                     ~1 | Shared_control_ID),
        #R = list(Phylo = cor_tree),
        test = "t",
        method = "REML", 
@@ -229,17 +243,13 @@ orchard_plot(ma_pred,
              xlab = "log response ratio (lnRR)")
 
 # meta-regression
-# TODO Treatment_stimulus - mistake in there
-# fixing Treatment_stimulus - merge "eye spot" and "eyespot"
-dat2$Treatment_stimulus <- 
-  ifelse(dat2$Treatment_stimulus == "eye spots", "eyespots", dat2$Treatment_stimulus)
-
+# eyespot or conspicuous?
 mr_pred <- rma.mv(yi = lnRR,
        V = lnRR_var, 
        mods = ~ Treatment_stimulus,
        random = list(~1 | Study_ID,
-                     #~1 | Cohort_ID, #TODO  some missing values
-                     ~1 | Obs_ID),
+                     ~1 | Cohort_ID, 
+                     ~1 | Shared_control_ID),
        #R = list(Phylo = cor_tree),
        test = "t",
        method = "REML", 
@@ -248,8 +258,130 @@ mr_pred <- rma.mv(yi = lnRR,
 
 summary(mr_pred)
 
-
 orchard_plot(mr_pred,
              mod = "Treatment_stimulus",
              group = "Study_ID",
              xlab = "log response ratio (lnRR)")
+
+# size of pattern
+mr_pred1 <- rma.mv(yi = lnRR,
+                   V = lnRR_var, 
+                   mods = ~ Diameter_pattern,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Cohort_ID,
+                                 ~1 | Shared_control_ID),
+                   #R = list(Phylo = cor_tree),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat2)
+
+summary(mr_pred1)
+
+
+bubble_plot(mr_pred1,
+            mod = "Diameter_pattern",
+            group = "Study_ID",
+            xlab = "size (mm)")
+
+# area of pattern
+mr_pred2 <- rma.mv(yi = lnRR,
+                   V = lnRR_var, 
+                   mods = ~ Area_pattern,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Cohort_ID, 
+                                 ~1 | Shared_control_ID),
+                   #R = list(Phylo = cor_tree),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat2)
+
+summary(mr_pred2)
+
+bubble_plot(mr_pred2,
+            mod = "Area_pattern",
+            group = "Study_ID",
+            xlab = "Area (mm2)")
+
+
+# number of pattern
+mr_pred3 <- rma.mv(yi = lnRR,
+                   V = lnRR_var, 
+                   mods = ~ Number_pattern,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Cohort_ID, 
+                                 ~1 | Shared_control_ID),
+                   #R = list(Phylo = cor_tree),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat2)
+
+summary(mr_pred3)
+
+bubble_plot(mr_pred3,
+            mod = "Number_pattern",
+            group = "Study_ID",
+            xlab = "Number")
+
+# type of prey
+mr_pred4 <- rma.mv(yi = lnRR,
+                   V = lnRR_var, 
+                   mods = ~ Type_prey,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Cohort_ID, 
+                                 ~1 | Shared_control_ID),
+                   #R = list(Phylo = cor_tree),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat2)
+
+summary(mr_pred4)
+
+orchard_plot(mr_pred4,
+             mod = "Type_prey",
+             group = "Study_ID",
+             xlab = "Type of prey")
+
+# shape of prey
+mr_pred5 <- rma.mv(yi = lnRR,
+                   V = lnRR_var, 
+                   mods = ~ Shape_prey,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Cohort_ID, 
+                                 ~1 | Shared_control_ID),
+                   #R = list(Phylo = cor_tree),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat2)
+
+summary(mr_pred5)
+
+orchard_plot(mr_pred5,
+             mod = "Shape_prey",
+             group = "Study_ID",
+             xlab = "Shape of prey")
+
+# shape of pattern
+mr_pred6 <- rma.mv(yi = lnRR,
+                   V = lnRR_var, 
+                   mods = ~ Shape_pattern,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Cohort_ID, 
+                                 ~1 | Shared_control_ID),
+                   #R = list(Phylo = cor_tree),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat2)
+
+summary(mr_pred6)
+
+orchard_plot(mr_pred6,
+             mod = "Shape_pattern",
+             group = "Study_ID",
+             xlab = "Shape of pattern")
+
