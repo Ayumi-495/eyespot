@@ -7,6 +7,8 @@ library(tidyverse)
 effect_lnRR <- function(dt) {
   
   # replace 0 in "C_mean", "T_sd", "C_sd", "C_proportion" with each minimum values
+  # if proportion too extreme value, replace minimum value (only "T_proportion")
+  
   dt <- dt %>% 
     mutate(C_mean = ifelse(C_mean == 0, 0.04, C_mean))
   dt <- dt %>% 
@@ -15,6 +17,8 @@ effect_lnRR <- function(dt) {
     mutate(C_sd = ifelse(C_sd == 0, 0.05, C_sd))
   dt <- dt %>% 
     mutate(C_proportion = ifelse(C_proportion == 0, 0.01, C_proportion))
+  dt <- dt %>% 
+    mutate(T_proportion = ifelse(T_proportion < 0.01, 0.01, T_proportion))
   
 　# copy dataset for adding effect size and its variation (lnRR /lnRR_var) column
   dt1 <- dt %>% 
@@ -106,95 +110,3 @@ effect_lnRR <- function(dt) {
   return(dt1)
   
 }
-
-
-# please ignore the part below - I will delete this later
-# check whether "T_mean", "C_mean", "T_sd", "C_sd", "T_proportion", and "C_proportion" have 0 or not
-
-dat_pred %>%
-  filter(T_proportion == 0 | C_proportion == 0) %>%
-  select(T_proportion, C_proportion)
-
-dat_pred %>%
-  filter(T_mean == 0 | C_mean == 0) %>%
-  select(T_mean, C_mean)
-# A tibble: 1 × 2
-#     T_mean C_mean
-#     <dbl>  <dbl>
-#  1  0.813      0
-
-dat_pred %>%
-  filter(T_sd == 0 | C_sd == 0) %>%
-  select(T_sd, C_sd)
-# A tibble: 3 × 2
-#    T_sd   C_sd
-#   <dbl>  <dbl>
-# 1  0     0.0522
-# 2  1.52  0     
-# 3  0.961 0  
-
-dat_pred %>%
-  filter(C_mean != 0) %>%
-  arrange(C_mean) %>%
-  head(3) %>%
-  select(C_mean)
-# A tibble: 3 × 1
-#  C_mean
-#  <dbl>
-# 1 0.0426
-# 2 0.0426
-# 3 0.0447
-
-dat_pred %>%
-  filter(T_sd != 0) %>%
-  arrange(T_sd) %>%
-  head(3) %>%
-  select(T_sd)
-# A tibble: 3 × 1
-#    T_sd
-#   <dbl>
-# 1 0.0116
-# 2 0.0220
-# 3 0.0278
-
-dat_pred %>%
-  filter(C_sd != 0) %>%
-  arrange(C_sd) %>%
-  head(3) %>%
-  select(C_sd)
-# A tibble: 3 × 1
-#   C_sd
-#   <dbl>
-# 1 0.0522
-# 2 0.0522
-# 3 0.0545
-
-dat_prey %>%
-  filter(T_proportion == 0 | C_proportion == 0) %>%
-  select(T_proportion, C_proportion)
-# A tibble: 3 × 2
-#       T_proportion C_proportion
-# <dbl>     <dbl>
-#  1        0.184            0
-#  2        0.318            0
-#  3        0.660            0
-
-dat_prey %>%
-  filter(T_mean == 0 | C_mean == 0) %>%
-  select(T_mean, C_mean)
-
-dat_prey %>%
-  filter(T_sd == 0 | C_sd == 0) %>%
-  select(T_sd, C_sd)
-
-dat_prey %>%
-  filter(C_proportion != 0) %>%
-  arrange(C_proportion) %>%
-  head(3) %>%
-  select(C_proportion)
-# A tibble: 3 × 1
-# C_proportion
-#     <dbl>
-# 1  0.0107
-# 2  0.0107
-# 3  0.0183
