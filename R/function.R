@@ -110,3 +110,22 @@ effect_lnRR <- function(dt) {
   return(dt1)
   
 }
+
+## please ignore the below ##
+
+meta_am <- function(yi, V, predictor, dat){
+  model1 <- rma.mv(yi = yi,
+                   V = V, 
+                   mods = ~ predictor,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Cohort_ID, 
+                                 ~1 | Shared_control_ID),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat)
+  
+  meta_result <- summary(model1)
+  
+  return(meta_result)
+}
