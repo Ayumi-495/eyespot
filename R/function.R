@@ -111,12 +111,14 @@ effect_lnRR <- function(dt) {
   
 }
 
+
 ## please ignore the below ##
 
-meta_am <- function(yi, V, predictor, dat){
-  model1 <- rma.mv(yi = yi,
+# for meta-analysis
+meta_a <- function(yi, V, dat) {
+ 
+   model1 <- rma.mv(yi = yi,
                    V = V, 
-                   mods = ~ predictor,
                    random = list(~1 | Study_ID,
                                  ~1 | Cohort_ID, 
                                  ~1 | Shared_control_ID),
@@ -128,4 +130,23 @@ meta_am <- function(yi, V, predictor, dat){
   meta_result <- summary(model1)
   
   return(meta_result)
+}
+
+# for meta-reggresion
+meta_r <- function(yi, V, predictor, dat) {
+  
+  model1 <- rma.mv(yi = yi,
+                   V = V, 
+                   mods = ~ predictor - 1,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Cohort_ID, 
+                                 ~1 | Shared_control_ID),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat)
+  
+  meta_r_result <- summary(model1)
+  
+  return(meta_r_result)
 }
