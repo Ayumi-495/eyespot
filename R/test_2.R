@@ -1,12 +1,35 @@
 # reading libraries and datasets
-
-library(tidyverse)
+library(ape)
 library(here)
-library(orchaRd)
 library(metafor)
 library(MetBrewer)
-library(ape)
-library(caper)
+library(orchaRd)
+library(phangorn)
+library(tidyverse)
+
+
+# TODO ask and check
+# Use 1,000 trees downloaded from www.birdtree.org based on predator dataset, 
+# compute the maximum clade credibility tree, compute branch lengths, compute the correlation matrix
+trees <- read.nexus(here("data/bird_phy.nex"), tree.names = T)
+tips <- dat_pred$Bird_species
+pruned.trees <- lapply(trees,keep.tip,tip=tips)
+class(pruned.trees) <- "multiPhylo" 
+
+mcc_pruned <- maxCladeCred(pruned.trees)
+mcc_pruned <- ladderize(mcc_pruned)
+mcc_pruned$tip.label
+# [1] "Gallus_gallus"       "Cyanocitta_cristata" "Sturnus_vulgaris"   
+# [4] "Ficedula_hypoleuca"  "Emberiza_sulphurata" "Parus_major"        
+# [7] "Parus_caeruleus" 
+
+mcc_ult <- compute.brlen(mcc_pruned, power = 1)
+phylo_cor <- vcv(mcc_ult, cor=T)
+
+plot.phylo(mcc_ult) 
+summary(phylo_cor[row(phylo_cor)!=col(phylo_cor)])
+
+
 
 # get data
 dat_prey <- read_csv(here("data/prey_22072023.csv"))
@@ -224,14 +247,6 @@ orchard_plot(mr_prey6,
 # predator
 ##########
 
-# get phylogeny
-# TODO how to get phylo and vcv from multiple phylogeny
-tree <- read.nexus(here("data/bird_phy.nex"))
-tree_1 <-  tree[[1]]
-plot(tree[[1]])
-tree_1 <- compute.brlen(tree_1)
-cor <- vcv(tree_1, cor = T)
-
 # turn all character strings to factor
 dat_pred <- dat_pred %>%
   mutate_if(is.character, as.factor)
@@ -249,10 +264,9 @@ ma_pred <- rma.mv(yi = lnRR,
        V = lnRR_var, 
        random = list(~1 | Study_ID,
                      ~1 | Cohort_ID, 
-                     ~1 | Shared_control_ID
-                    # ~1 | Bird_species
-                    ), 
-       # R = list(Bird_species = cor), # FIXME - this is wrong
+                     ~1 | Shared_control_ID,
+                     ~1 | Bird_species),
+        R = list(Bird_species = phylo_cor), 
        test = "t",
        method = "REML", 
        sparse = TRUE,
@@ -261,8 +275,10 @@ ma_pred <- rma.mv(yi = lnRR,
 summary(ma_pred)
 i2_pred <- i2_ml(ma_pred)
 i2_pred
-# FIXME?     I2_Total          I2_Study_ID         I2_Cohort_ID I2_Shared_control_ID  
-#       9.899186e+01         3.460302e-06         6.143193e+01         3.755992e+01
+# I2_Total          I2_Study_ID         I2_Cohort_ID 
+# 9.899186e+01         2.848359e-06         6.143187e+01 
+# I2_Shared_control_ID      I2_Bird_species 
+# 3.755998e+01         3.497049e-07 
 
 p1_pred <- orchard_plot(ma_pred,
              group = "Study_ID",
