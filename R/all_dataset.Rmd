@@ -153,6 +153,9 @@ dat_all <-  dat_all[1:263,]
 
 all_inc <- dat_all %>% filter(Direction == "Increase") 
 all_dec <- dat_all %>% filter(Direction == "Decrease")
+pred_inc <- all_inc %>% filter(Dataset == "predator")
+pred_dec <- all_dec %>% filter(Dataset == "predator")
+
 ```
 
 ## response -> increase dataset
@@ -471,6 +474,67 @@ orchard_plot(mr_alldec5,
              mod = "Shape_prey",
              group = "Study_ID",
              xlab = "Shape of prey")
+
+```
+
+
+```{r}
+trees_inc <- read.nexus(here("~/Desktop/2023 Australia_MA/increase.nex"), tree.names = T)
+tips_i <- pred_inc$Bird_species
+pruned.trees_i <- lapply(trees,keep.tip,tip=tips_i)
+class(pruned.trees_i) <- "multiPhylo" 
+
+mcc_pruned_i <- maxCladeCred(pruned.trees_i)
+mcc_pruned_i <- ladderize(mcc_pruned_i)
+mcc_pruned_i$tip.label
+mcc_ult_i <- compute.brlen(mcc_pruned_i, power = 1)
+phylo_cor_i <- vcv(mcc_ult_i, cor=T)
+
+dat2_inc <- effect_lnRR(pred_inc)
+ma_pred_inc <- rma.mv(yi = lnRR,
+       V = lnRR_var, 
+       random = list(~1 | Study_ID,
+                     ~1 | Cohort_ID, 
+                     ~1 | Shared_control_ID,
+                     ~1 | Bird_species),
+        R = list(Bird_species = phylo_cor_i), 
+       test = "t",
+       method = "REML", 
+       sparse = TRUE,
+       data = dat2_inc)
+
+
+summary(ma_pred_inc)
+i2_ml(ma_pred_inc)
+
+
+
+trees_dec <- read.nexus(here("~/Desktop/2023 Australia_MA/decrease.nex"), tree.names = T)
+tips_d <- pred_dec$Bird_species
+pruned.trees_d <- lapply(trees,keep.tip,tip=tips_d)
+class(pruned.trees_d) <- "multiPhylo" 
+
+mcc_pruned_d <- maxCladeCred(pruned.trees_d)
+mcc_pruned_d <- ladderize(mcc_pruned_d)
+mcc_pruned_d$tip.label
+mcc_ult_d <- compute.brlen(mcc_pruned_d, power = 1)
+phylo_cor_d <- vcv(mcc_ult_d, cor=T)
+
+dat2_dec <- effect_lnRR(pred_dec)
+ma_pred_dec <- rma.mv(yi = lnRR,
+       V = lnRR_var, 
+       random = list(~1 | Study_ID,
+                     ~1 | Cohort_ID, 
+                     ~1 | Shared_control_ID,
+                     ~1 | Bird_species),
+        R = list(Bird_species = phylo_cor_d), 
+       test = "t",
+       method = "REML", 
+       sparse = TRUE,
+       data = dat2_dec)
+
+summary(ma_pred_inc)
+i2_ml(ma_pred_inc)
 
 ```
 
