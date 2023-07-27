@@ -1,10 +1,12 @@
-# reading datasets
+# reading libraries and datasets
 
 library(tidyverse)
 library(here)
 library(orchaRd)
 library(metafor)
+library(MetBrewer)
 library(ape)
+library(caper)
 
 # get data
 dat_prey <- read_csv(here("data/prey_22072023.csv"))
@@ -72,7 +74,6 @@ mr_prey <- rma.mv(yi = lnRR,
        random = list(~1 | Study_ID,
                      ~1 | Cohort_ID,
                      ~1 | Shared_control_ID),
-       #R = list(Phylo = cor_tree),
        test = "t",
        method = "REML", 
        sparse = TRUE,
@@ -97,7 +98,7 @@ ggsave("treatment_prey.pdf", dpi = 450)
 # all moderator 
 mr_prey1 <- rma.mv(yi = lnRR,
        V = lnRR_var, 
-       mods = ~ Treatment_stimulus + Area_pattern + Number_pattern +Type_prey,
+       mods = ~ Diameter_pattern,
        random = list(~1 | Study_ID,
                      ~1 | Cohort_ID,
                      ~1 | Shared_control_ID),
@@ -107,13 +108,6 @@ mr_prey1 <- rma.mv(yi = lnRR,
        data = dat1)
 
 summary(mr_prey1)
-
-bubble_prey1 <-  orchaRd::mod_results(mr_prey1, mod = "Diameter_pattern", group = "Study_ID")
-bubble_plot(mr_prey1,
-             mod = "Diameter_pattern",
-             group = "Study_ID",
-             xlab = "size (mm)")
-
 
 # area of pattern
 mr_prey2 <- rma.mv(yi = lnRR,
@@ -133,6 +127,7 @@ r2_ml(mr_prey2)
 # R2_marginal R2_conditional 
 # 0.5409066      0.7809412 
 
+r2_ml(mr_prey1)
 # size
 # R2_marginal R2_conditional 
 # 0.3967114      0.6990439 
@@ -140,7 +135,9 @@ r2_ml(mr_prey2)
 bubble_plot(mr_prey2,
              mod = "Area_pattern",
              group = "Study_ID",
+             k = TRUE, g = TRUE,
              xlab = "Area (mm2)")
+# plotしたいんだけどなぁ
 #FIXME - Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
 #replacement has 0 rows, data has 146
 
@@ -248,14 +245,14 @@ hist(dat2$lnRR_var)
 
 # meta-analysis
 # dat2$Shared_control_ID <- 1:nrow(dat2)
-
 ma_pred <- rma.mv(yi = lnRR,
        V = lnRR_var, 
        random = list(~1 | Study_ID,
                      ~1 | Cohort_ID, 
-                     ~1 | Shared_control_ID,
-                     ~1 | Bird_species), 
-       R = list(Bird_species = cor), # FIXME - this is wrong
+                     ~1 | Shared_control_ID
+                    # ~1 | Bird_species
+                    ), 
+       # R = list(Bird_species = cor), # FIXME - this is wrong
        test = "t",
        method = "REML", 
        sparse = TRUE,
@@ -274,6 +271,10 @@ p1_pred <- orchard_plot(ma_pred,
   scale_fill_manual(values = "darkolivegreen3") +
   scale_colour_manual(values = "darkolivegreen3")
 ggsave("overall_predator.pdf", dpi = 450)
+
+p1_pred_cat <- caterpillars(ma_pred, group = "Study_ID", xlab = "log response ratio (lnRR)")
+p1_pred_cat
+ggsave("overall_cat_pred.pdf", dpi = 450)
 
 
 # meta-regression
@@ -295,7 +296,10 @@ summary(mr_pred)
 orchard_plot(mr_pred,
              mod = "Treatment_stimulus",
              group = "Study_ID",
-             xlab = "log response ratio (lnRR)")
+             xlab = "log response ratio (lnRR)") +
+scale_fill_manual(values = met.brewer("Tara")) +
+  scale_colour_manual(values = met.brewer("Tara"))
+ggsave("treatment_predator.pdf", dpi = 450)
 
 # size of pattern
 mr_pred1 <- rma.mv(yi = lnRR,
