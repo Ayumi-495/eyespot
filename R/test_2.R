@@ -1,4 +1,4 @@
-# reading libraries and datasets
+# read libraries
 library(ape)
 library(here)
 library(metafor)
@@ -8,7 +8,7 @@ library(phangorn)
 library(tidyverse)
 
 
-# TODO ask and check
+# TODO - phylogeny ask and check
 # Use 1,000 trees downloaded from www.birdtree.org based on predator dataset, 
 # compute the maximum clade credibility tree, compute branch lengths, compute the correlation matrix
 trees <- read.nexus(here("data/bird_phy.nex"), tree.names = T)
@@ -28,7 +28,6 @@ phylo_cor <- vcv(mcc_ult, cor=T)
 
 plot.phylo(mcc_ult) 
 summary(phylo_cor[row(phylo_cor)!=col(phylo_cor)])
-
 
 
 # get data
@@ -260,6 +259,7 @@ hist(dat2$lnRR_var)
 
 # meta-analysis
 # dat2$Shared_control_ID <- 1:nrow(dat2)
+
 ma_pred <- rma.mv(yi = lnRR,
        V = lnRR_var, 
        random = list(~1 | Study_ID,
