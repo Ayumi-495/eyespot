@@ -234,8 +234,10 @@ r2_ml(mr_prey4)
 orchard_plot(mr_prey4,
              mod = "Type_prey",
              group = "Study_ID",
-             xlab = "Type of prey")
-ggsave("type_prey.pdf", dpi = 450)
+             xlab = "Type of prey", 
+             angle = 45)
+
+ggsave("type_prey_prey.pdf", dpi = 450)
 
 # shape of prey
 mr_prey5 <- rma.mv(yi = lnRR,
@@ -265,7 +267,7 @@ orchard_plot(mr_prey5,
              group = "Study_ID",
              xlab = "Shape of prey")
 
-ggsave("shape_prey.pdf", dpi = 450)
+ggsave("shape_prey_prey.pdf", dpi = 450)
 
 ##########
 # predator
@@ -349,7 +351,7 @@ orchard_plot(mr_pred,
              angle = 45) +
              scale_fill_manual(values = met.brewer("Tara")) +
              scale_colour_manual(values = met.brewer("Tara"))
-ggsave("treatment_predator.pdf", dpi = 450)
+ggsave("treatment_predator_pred.pdf", dpi = 450)
 
 # size of pattern
 mr_pred1 <- rma.mv(yi = lnRR,
@@ -462,7 +464,7 @@ orchard_plot(mr_pred4,
              mod = "Type_prey",
              group = "Study_ID",
              xlab = "Type of prey")
-ggsave("type_predator.pdf", dpi = 450)
+ggsave("type_prey_pred.pdf", dpi = 450)
 
 
 # shape of prey
@@ -489,7 +491,7 @@ orchard_plot(mr_pred5,
              group = "Study_ID",
              xlab = "Shape of prey")
 
-ggsave("shape_predator.pdf", dpi = 450)
+ggsave("shape_predator_pred.pdf", dpi = 450)
 
 ##########
 # all
