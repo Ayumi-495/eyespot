@@ -187,8 +187,8 @@ ma_allinc <- rma.mv(yi = lnRR,
 summary(ma_allinc)
 # estimate    se    tval    df   pval  ci.lb    ci.ub
 # 0.2892  0.0829  3.4871  201  0.0006  0.1257  0.4527  *** 
-i2_ml(ma_allinc)
 
+i2_ml(ma_allinc)
 #          I2_Total          I2_Study_ID         I2_Cohort_ID I2_Shared_control_ID 
 #           96.24586             36.65856             21.38058             38.20672 
 
@@ -203,17 +203,16 @@ p1_all_inc
 
 ggsave("overall_all_inc.pdf", dpi = 450)
 ```
-
+rm(mod)
 ## meta-regression
-eyespot or conspicuous? - birds responded to eyespots than conspicuous, treatment of stimuli as a moderator explained little #### of the variance in the data
+eyespot or conspicuous? - birds responded to eyespots than conspicuous, treatment of stimuli as a moderator explained little of the variance in the data
 ```{r}
 mr_allinc1 <- rma.mv(yi = lnRR,
        V = lnRR_var, 
-       mods = ~ Treatment_stimulus - 1,
+       mods = ~ Treatment_stimulus -1,
        random = list(~1 | Study_ID,
                      ~1 | Cohort_ID,
                      ~1 | Shared_control_ID),
-       #R = list(Phylo = cor_tree),
        test = "t",
        method = "REML", 
        sparse = TRUE,

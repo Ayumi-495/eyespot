@@ -7,28 +7,6 @@ library(orchaRd)
 library(phangorn)
 library(tidyverse)
 
-
-# TODO - phylogeny ask and check
-# Use 1,000 trees downloaded from www.birdtree.org based on predator dataset, 
-# compute the maximum clade credibility tree, compute branch lengths, compute the correlation matrix
-trees <- read.nexus(here("data/bird_phy.nex"), tree.names = T)
-tips <- dat_pred$Bird_species
-pruned.trees <- lapply(trees,keep.tip,tip=tips)
-class(pruned.trees) <- "multiPhylo" 
-
-mcc_pruned <- maxCladeCred(pruned.trees)
-mcc_pruned <- ladderize(mcc_pruned)
-mcc_pruned$tip.label
-# [1] "Gallus_gallus"       "Cyanocitta_cristata" "Sturnus_vulgaris"   
-# [4] "Ficedula_hypoleuca"  "Emberiza_sulphurata" "Parus_major"        
-# [7] "Parus_caeruleus" 
-
-mcc_ult <- compute.brlen(mcc_pruned, power = 1)
-phylo_cor <- vcv(mcc_ult, cor=T)
-
-plot.phylo(mcc_ult) 
-summary(phylo_cor[row(phylo_cor)!=col(phylo_cor)])
-
 # get data
 dat_prey <- read_csv(here("data/prey_22072023.csv"))
 dat_pred <- read_csv(here("data/predator_22072023.csv"))
@@ -61,14 +39,14 @@ hist(dat1$lnRR_var)
 #dat1$Shared_control_ID <- 1:nrow(dat1)
 
 ma_prey <- rma.mv(yi = lnRR,
-       V = lnRR_var, 
-       random = list(~1 | Study_ID,
-                     ~1 | Cohort_ID,
-                     ~1 | Shared_control_ID),
-       test = "t",
-       method = "REML", 
-       sparse = TRUE,
-       data = dat1)
+                  V = lnRR_var, 
+                  random = list(~1 | Study_ID,
+                                ~1 | Cohort_ID,
+                                ~1 | Shared_control_ID),
+                  test = "t",
+                  method = "REML", 
+                  sparse = TRUE,
+                  data = dat1)
 
 summary(ma_prey)
 # estimate      se    tval   df    pval   ci.lb   ci.ub      
@@ -95,15 +73,15 @@ ggsave("overall_cat_prey.pdf", dpi = 450)
 # meta-regression
 # eyespot or conspicuous?
 mr_prey <- rma.mv(yi = lnRR,
-       V = lnRR_var, 
-       mods = ~ Treatment_stimulus -1,
-       random = list(~1 | Study_ID,
-                     ~1 | Cohort_ID,
-                     ~1 | Shared_control_ID),
-       test = "t",
-       method = "REML", 
-       sparse = TRUE,
-       data = dat1)
+                  V = lnRR_var, 
+                  mods = ~ Treatment_stimulus -1,
+                  random = list(~1 | Study_ID,
+                                ~1 | Cohort_ID,
+                                ~1 | Shared_control_ID),
+                  test = "t",
+                  method = "REML", 
+                  sparse = TRUE,
+                  data = dat1)
 
 summary(mr_prey)
 #                                 estimate      se    tval   df    pval   ci.lb   ci.ub      
@@ -126,15 +104,15 @@ ggsave("treatment_prey.pdf", dpi = 450)
 
 # size
 mr_prey1 <- rma.mv(yi = lnRR,
-       V = lnRR_var, 
-       mods = ~ Diameter_pattern,
-       random = list(~1 | Study_ID,
-                     ~1 | Cohort_ID,
-                     ~1 | Shared_control_ID),
-       test = "t",
-       method = "REML", 
-       sparse = TRUE,
-       data = dat1)
+                   V = lnRR_var, 
+                   mods = ~ Diameter_pattern,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Cohort_ID,
+                                 ~1 | Shared_control_ID),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat1)
 
 summary(mr_prey1)
 #                   estimate      se     tval   df    pval    ci.lb    ci.ub      
@@ -150,20 +128,20 @@ bubble_plot(mr_prey1,
             group = "Study_ID",
             xlab = "Diameter (mm)")
 # plotしたいんだけどなぁ
-#FIXME - Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
-#replacement has 0 rows, data has 146
+# FIXME - Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
+# replacement has 0 rows, data has 146
 
 # area of pattern
 mr_prey2 <- rma.mv(yi = lnRR,
-       V = lnRR_var, 
-       mods = ~ Area_pattern,
-       random = list(~1 | Study_ID,
-                     ~1 | Cohort_ID, 
-                     ~1 | Shared_control_ID),
-       test = "t",
-       method = "REML", 
-       sparse = TRUE,
-       data = dat1)
+                   V = lnRR_var, 
+                   mods = ~ Area_pattern,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Cohort_ID, 
+                                 ~1 | Shared_control_ID),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat1)
 
 summary(mr_prey2)
 #               estimate      se     tval   df    pval    ci.lb   ci.ub      
@@ -180,8 +158,8 @@ bubble_plot(mr_prey2,
              k = TRUE, g = TRUE,
              xlab = "Area (mm2)")
 # plotしたいんだけどなぁ
-#FIXME - Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
-#replacement has 0 rows, data has 146
+# FIXME - Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
+# replacement has 0 rows, data has 146
 
 # number of pattern
 mr_prey3 <- rma.mv(yi = lnRR,
@@ -211,19 +189,18 @@ bubble_plot(mr_prey3,
 
 # type of prey
 mr_prey4 <- rma.mv(yi = lnRR,
-       V = lnRR_var, 
-       mods = ~ Type_prey　-1,
-       random = list(~1 | Study_ID,
-                     ~1 | Cohort_ID, 
-                     ~1 | Shared_control_ID),
-       test = "t",
-       method = "REML", 
-       sparse = TRUE,
-       data = dat1)
+                   V = lnRR_var, 
+                   mods = ~ Type_prey　-1,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Cohort_ID, 
+                                 ~1 | Shared_control_ID),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat1)
        
 summary(mr_prey4)
-
-#                    estimate      se    tval   df    pval   ci.lb   ci.ub     
+#                      estimate      se    tval   df    pval   ci.lb   ci.ub     
 # Type_preyartificial    0.3149  0.0998  3.1560  144  0.0019  0.1177  0.5121  ** 
 # Type_preyreal          0.2849  0.1408  2.0241  144  0.0448  0.0067  0.5631   * 
 
@@ -272,6 +249,26 @@ ggsave("shape_prey_prey.pdf", dpi = 450)
 ##########
 # predator
 ##########
+# TODO - phylogeny ask and check
+# Use 1,000 trees downloaded from www.birdtree.org based on predator dataset, 
+# compute the maximum clade credibility tree, compute branch lengths, compute the correlation matrix
+trees <- read.nexus(here("data/bird_phy.nex"), tree.names = T)
+tips <- dat_pred$Bird_species
+pruned.trees <- lapply(trees,keep.tip,tip=tips)
+class(pruned.trees) <- "multiPhylo" 
+
+mcc_pruned <- maxCladeCred(pruned.trees)
+mcc_pruned <- ladderize(mcc_pruned)
+mcc_pruned$tip.label
+# [1] "Gallus_gallus"       "Cyanocitta_cristata" "Sturnus_vulgaris"   
+# [4] "Ficedula_hypoleuca"  "Emberiza_sulphurata" "Parus_major"        
+# [7] "Parus_caeruleus" 
+
+mcc_ult <- compute.brlen(mcc_pruned, power = 1)
+phylo_cor <- vcv(mcc_ult, cor=T)
+
+plot.phylo(mcc_ult) 
+summary(phylo_cor[row(phylo_cor)!=col(phylo_cor)])
 
 # turn all character strings to factor
 dat_pred <- dat_pred %>%
@@ -288,22 +285,22 @@ hist(dat2$lnRR_var)
 # dat2$Shared_control_ID <- 1:nrow(dat2)
 
 ma_pred <- rma.mv(yi = lnRR,
-       V = lnRR_var, 
-       random = list(~1 | Study_ID,
-                     ~1 | Cohort_ID, 
-                     ~1 | Shared_control_ID,
-                     ~1 | Bird_species),
-        R = list(Bird_species = phylo_cor), 
-       test = "t",
-       method = "REML", 
-       sparse = TRUE,
-       data = dat2)
+                  V = lnRR_var, 
+                  random = list(~1 | Study_ID,
+                                ~1 | Cohort_ID, 
+                                ~1 | Shared_control_ID,
+                                ~1 | Bird_species),
+                  R = list(Bird_species = phylo_cor), 
+                  test = "t",
+                  method = "REML", 
+                  sparse = TRUE,
+                  data = dat2)
 
 summary(ma_pred)
 # estimate      se     tval   df    pval    ci.lb   ci.ub    
 # -0.0496  0.1255  -0.3952  116  0.6934  -0.2981  0.1989    
 
-i2_ml(ma_pred)　#FIXME?
+i2_ml(ma_pred)　#TODO something is wrong - Study_ID
 #     I2_Total          I2_Study_ID         I2_Cohort_ID 
 # 9.899186e+01         2.848359e-06         6.143187e+01 
 # I2_Shared_control_ID      I2_Bird_species 
@@ -323,22 +320,22 @@ ggsave("overall_cat_pred.pdf", dpi = 450)
 # meta-regression
 # eyespot or conspicuous?
 mr_pred <- rma.mv(yi = lnRR,
-       V = lnRR_var, 
-       mods = ~ Treatment_stimulus -1,
-       random = list(~1 | Study_ID,
-                     ~1 | Cohort_ID, 
-                     ~1 | Shared_control_ID,
-                     ~1 | Bird_species),
-       R = list(Bird_species = phylo_cor), 
-       test = "t",
-       method = "REML", 
-       sparse = TRUE,
-       data = dat2)
+                  V = lnRR_var, 
+                  mods = ~ Treatment_stimulus -1,
+                  random = list(~1 | Study_ID,
+                                ~1 | Cohort_ID, 
+                                ~1 | Shared_control_ID,
+                                ~1 | Bird_species),
+                  R = list(Bird_species = phylo_cor), 
+                  test = "t",
+                  method = "REML", 
+                  sparse = TRUE,
+                  data = dat2)
 
 summary(mr_pred)
-# estimate      se     tval   df    pval    ci.lb   ci.ub    
-# Treatment_stimulusconspicuous   -0.3602  0.1850  -1.9475  115  0.0539  -0.7266  0.0062  . 
-# Treatment_stimuluseyespot        0.0185  0.1303   0.1420  115  0.8873  -0.2396  0.2766    
+#                                 estimate      se     tval   df    pval    ci.lb   ci.ub    
+# Treatment_stimulus conspicuous   -0.3602  0.1850  -1.9475  115  0.0539  -0.7266  0.0062  . 
+# Treatment_stimulus eyespot        0.0185  0.1303   0.1420  115  0.8873  -0.2396  0.2766    
 
 r2_ml(mr_pred)
 # R2_marginal R2_conditional 
@@ -424,7 +421,7 @@ mr_pred3 <- rma.mv(yi = lnRR,
                    data = dat2)
 
 summary(mr_pred3)
-# estimate      se     tval   df    pval    ci.lb   ci.ub    
+#                 estimate      se     tval   df    pval    ci.lb   ci.ub    
 # intrcpt          -0.0206  0.2104  -0.0978  115  0.9222  -0.4374  0.3962    
 # Number_pattern   -0.0128  0.0744  -0.1717  115  0.8640  -0.1601  0.1346    
 
@@ -533,11 +530,11 @@ i2_all
 #   96.62613             24.89248             24.19243             47.54122 
 
 p1_all <-  orchard_plot(ma_all,
-                         group = "Study_ID",
-                         xlab = "log response ratio (lnRR)", angle = 45) +
-  scale_x_discrete(labels = c("Overall effect")) +
-  scale_fill_manual(values = met.brewer("Homer2")) +
-  scale_colour_manual(values = met.brewer("Homer2"))
+                        group = "Study_ID",
+                        xlab = "log response ratio (lnRR)", angle = 45) +
+                        scale_x_discrete(labels = c("Overall effect")) +
+                        scale_fill_manual(values = met.brewer("Homer2")) +
+                        scale_colour_manual(values = met.brewer("Homer2"))
 
 p1_all
 ggsave("overall_all.pdf", dpi = 450)
@@ -570,12 +567,12 @@ r2_ml(mr_all)
 #   0.02182893     0.77884570  
 
 p2_all <- orchard_plot(mr_all,
-                        mod = "Treatment_stimulus",
-                        group = "Study_ID",
-                        xlab = "log response ratio (lnRR)",
-                        angle = 45) +
-  scale_fill_manual(values = met.brewer("Homer1", 2)) +
-  scale_colour_manual(values = met.brewer("Homer1", 2))
+                       mod = "Treatment_stimulus",
+                       group = "Study_ID",
+                       xlab = "log response ratio (lnRR)",
+                       angle = 45) +
+                       scale_fill_manual(values = met.brewer("Homer1", 2)) +
+                       scale_colour_manual(values = met.brewer("Homer1", 2))
 
 p2_all
 ggsave("treatment_all.pdf", dpi = 450)
@@ -608,8 +605,8 @@ bubble_plot(mr_all1,
             k = TRUE, g = TRUE,
             xlab = "Diameter (mm)")
 # plotしたいんだけどなぁ
-#FIXME - Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
-#replacement has 0 rows, data has 261
+# FIXME - Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
+# replacement has 0 rows, data has 261
 
 # area of pattern
 mr_all2 <- rma.mv(yi = lnRR,
@@ -638,8 +635,8 @@ bubble_plot(mr_all2,
             k = TRUE, g = TRUE,
             xlab = "Area (mm2)")
 # plotしたいんだけどなぁ
-#FIXME - Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
-#replacement has 0 rows, data has 261
+# FIXME - Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
+# replacement has 0 rows, data has 261
 
 # number of pattern
 mr_all3 <- rma.mv(yi = lnRR,
