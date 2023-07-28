@@ -37,9 +37,10 @@ effect_lnRR <- function(dt) {
     C_sd <- dt1$C_sd[i]
     Response <- dt1$Response[i]
     Measure <- dt1$Measure[i]
+    Study_design <- dt1$Study_design[i]
     
     # continuous data - using escalc() (metafor package)
-    if (Response == "continuous") {
+    if (Response == "continuous" & Study_design == "independent") {
       
       # reverse means when latency was measured
       T_mean <- replace(T_mean, Measure == "latency",
@@ -58,9 +59,29 @@ effect_lnRR <- function(dt) {
       dt1$lnRR_var[i] <- effect$lnRR_var
       
     }
-    
+     else if (Response == "continuous" & Study_design == "dependent") {
+      
+      # reverse means when latency was measured
+      T_mean <- replace(T_mean, Measure == "latency",
+                        T_mean[Measure == "latency"] * (-1))
+      C_mean <- replace(C_mean, Measure == "latency",
+                        C_mean[Measure == "latency"] * (-1))
+      
+      effect <- escalc(measure = "ROMC", 
+                       ni = (Tn + Cn)/2, 
+                       m1i = T_mean, m2 = C_mean, 
+                       sd1i = T_sd, sd2i = C_sd,
+                       ri = 0.5,
+                       var.names = c("lnRR", "lnRR_var")
+      )
+      
+      dt1$lnRR[i] <- effect$lnRR
+      dt1$lnRR_var[i] <- effect$lnRR_var
+      
+    }
+
     # proportion data (no sd values)
-    else if (Response == "proportion1") {
+    else if (Response == "proportion1" & Study_design == "independent") {
       
       # transform proportion value
       asin_trans <- function(proportion) {
@@ -80,9 +101,31 @@ effect_lnRR <- function(dt) {
       dt1$lnRR_var[i] <- lnRR_var_pro1
       
     }
-    
+    else if (Response == "proportion1" & Study_design == "dependent") {
+      
+      # transform proportion value
+      asin_trans <- function(proportion) {
+        trans <- asin(sqrt(proportion)) 
+        trans
+      }
+      
+      T_proportion <- asin_trans(T_proportion)
+      C_proportion <- asin_trans(C_proportion)
+      
+      # calculate lnRR and lnRR variance   
+      lnRR_pro1 <- log(T_proportion / C_proportion)
+      lnRR_var_pro1 <- (1 / sqrt(8))^2 * (1 / (T_proportion^2 * Tn) +
+                                            1 / (C_proportion^2 * Cn)) - 
+                  2 * 0.5 * sqrt((1 / sqrt(8))^2 * (1 / (T_proportion^2 * Tn))) * 
+                  sqrt((1 / sqrt(8))^2 * (1 / (C_proportion^2 * Cn)))
+      
+      dt1$lnRR[i] <- lnRR_pro1
+      dt1$lnRR_var[i] <- lnRR_var_pro1
+      
+    }
     # proportion data (exist sd values) 
-    else if (Response == "proportion2") {
+    
+    else if (Response == "proportion2" & Study_design == "dependent") {
       
       # transform proportion mean value
       asin_trans <- function(proportion) {
@@ -99,7 +142,9 @@ effect_lnRR <- function(dt) {
       # calculate lnRR and lnRR variance 
       lnRR_pro2 <- log(T_proportion / C_proportion)
       lnRR_var_pro2 <- (T_SD)^2 * (1 / (T_proportion^2 * Tn)) +
-                          (C_SD)^2 * (1 / (C_proportion^2 * Cn))
+                          (C_SD)^2 * (1 / (C_proportion^2 * Cn)) -
+                  2 * 0.5 * sqrt((T_SD)^2 * (1 / (T_proportion^2 * Tn)) ) *
+                  sqrt((C_SD)^2 * (1 / (C_proportion^2 * Cn)))
       
       dt1$lnRR[i] <- lnRR_pro2
       dt1$lnRR_var[i] <- lnRR_var_pro2
@@ -111,6 +156,11 @@ effect_lnRR <- function(dt) {
   
 }
 
+## test
+library(here)
+dat <- read.csv(here("data", "all_25072023.csv"))
+
+dat1 <- effect_lnRR(dat)
 
 ## please ignore the below ##
 
