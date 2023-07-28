@@ -131,22 +131,3 @@ meta_a <- function(dat) {
   
   return(meta_result)
 }
-
-# for meta-reggresion
-meta_r <- function(dat) {
-  
-  model1 <- rma.mv(yi = lnRR,
-                   V = lnRR_var, 
-                   mods = ~ predictor - 1,
-                   random = list(~1 | Study_ID,
-                                 ~1 | Cohort_ID, 
-                                 ~1 | Shared_control_ID),
-                   test = "t",
-                   method = "REML", 
-                   sparse = TRUE,
-                   data = dat)
-  
-  meta_r_result <- summary(model1)
-  
-  return(meta_r_result)
-}
