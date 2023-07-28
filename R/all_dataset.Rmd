@@ -153,12 +153,15 @@ dat_all <-  dat_all[1:263,]
 
 all_inc <- dat_all %>% filter(Direction == "Increase") 
 all_dec <- dat_all %>% filter(Direction == "Decrease")
+prey_inc <- all_inc %>% filter(Dataset == "prey")
+prey_dec <- all_dec %>% filter(Dataset == "prey")
 pred_inc <- all_inc %>% filter(Dataset == "predator")
 pred_dec <- all_dec %>% filter(Dataset == "predator")
 
 ```
 
-## response -> increase dataset
+all dataset
+response -> increase dataset
 ```{r}
 all1 <- effect_lnRR_test(all_inc)
 
@@ -168,7 +171,8 @@ which(all1$lnRR == min(all1$lnRR))
 which(all1$lnRR == max(all1$lnRR))
 ```
 
-### meta-analysis
+## meta-analysis
+salient pattern stimuli induce bird responses, heterogeneity across effect sizes was high
 ```{r}
 ma_allinc <- rma.mv(yi = lnRR,
        V = lnRR_var, 
@@ -181,6 +185,8 @@ ma_allinc <- rma.mv(yi = lnRR,
        data = all1)
 
 summary(ma_allinc)
+# estimate    se    tval    df   pval  ci.lb    ci.ub
+# 0.2892  0.0829  3.4871  201  0.0006  0.1257  0.4527  *** 
 i2_ml(ma_allinc)
 
 #          I2_Total          I2_Study_ID         I2_Cohort_ID I2_Shared_control_ID 
@@ -198,19 +204,12 @@ p1_all_inc
 ggsave("overall_all_inc.pdf", dpi = 450)
 ```
 
-### meta-regression
-#### eyespot or conspicuous?
+## meta-regression
+eyespot or conspicuous? - birds responded to eyespots than conspicuous, treatment of stimuli as a moderator explained little #### of the variance in the data
 ```{r}
-
-mr_allinc1_test <- meta_am( yi = all1$lnRR, V = all1$lnRR_var, predictor = all1$Treatment_stimulus, all1)
-
-summary(mr_allinc1_test)
-
-# intrcpt	0.1654	0.1039	1.5914	200	0.1131	-0.0396	0.3704	
-# predictoreyespot	0.1758	0.0810	2.1704	200	0.0312	0.0161	0.3355
 mr_allinc1 <- rma.mv(yi = lnRR,
        V = lnRR_var, 
-       mods = ~ Treatment_stimulus,
+       mods = ~ Treatment_stimulus - 1,
        random = list(~1 | Study_ID,
                      ~1 | Cohort_ID,
                      ~1 | Shared_control_ID),
@@ -221,8 +220,9 @@ mr_allinc1 <- rma.mv(yi = lnRR,
        data = all1)
 
 summary(mr_allinc1)
-# intrcpt	0.1654	0.1039	1.5914	200	0.1131	-0.0396	0.3704	
-# Treatment_stimuluseyespot	0.1758	0.0810	2.1704	200	0.0312	0.0161	0.3355
+#                      estimate       se    tval      df        pval    ci.lb  ci.ub
+# Treatment_stimulus conspicuous	0.1654	0.1039	1.5914	200	0.1131	-0.0396	0.3704	
+# Treatment_stimulus eyespot	    0.3412	0.0888	3.8435	200	0.0002	0.1662	0.5163	***
 
 r2_ml(mr_allinc1)
 #   R2_marginal R2_conditional 
@@ -234,13 +234,13 @@ p2_allinc <- orchard_plot(mr_allinc1,
              xlab = "log response ratio (lnRR)",
              angle = 45) +
              scale_fill_manual(values = met.brewer("Homer2", 2)) +
-            scale_colour_manual(values = met.brewer("Homer2", 2))
+             scale_colour_manual(values = met.brewer("Homer2", 2))
 p2_allinc
 
 ggsave("treatment_all_inc.pdf", dpi = 450)
 ```
 
-#### area of pattern
+area of pattern - larger stimuli promote bird response - area as a moderator explained large of the variance in the data
 ```{r}
 mr_allinc2 <- rma.mv(yi = lnRR,
        V = lnRR_var, 
@@ -254,21 +254,31 @@ mr_allinc2 <- rma.mv(yi = lnRR,
        data = all1)
 
 summary(mr_allinc2)
+# Test of Moderators (coefficient 2)
+# F(df1 = 2, df2 = 200) = 8.1528, p-val = 0.0004
+
+#        estimate     se    tval   df   pval    ci.lb  ci.ub
+# intrcpt	0.1442	0.1010	1.4285	198	0.1547	-0.0549	0.3433	
+# Area_pattern	0.0021	0.0007	3.1252	198	0.0020	0.0008	0.0034	**
+
 r2_ml(mr_allinc2)
 #   R2_marginal R2_conditional 
 #     0.3395119      0.8654739 
 
 # plotしたいんだけどなー
-bubble_plot(mr_allinc2,
-             mod = "Area_pattern",
-             group = "Study_ID",
-             xlab = "Area (mm2)")
+p3_all_inc <- bubble_plot(mr_allinc2,
+              mod = "Area_pattern",
+              group = "Study_ID",
+              xlab = "Area (mm2)") +
+              scale_fill_manual(values = met.brewer("Perul", 2)) +
+              scale_colour_manual(values = met.brewer("Perul", 2))
+p3_all_inc
 
 #FIXME - Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
 #replacement has 0 rows, data has 200
 ```
 
-#### number of pattern
+number of pattern - bird responses increase smaller number stimuli - number of stimuli as a moderator explained little of #### the variance in the data
 ```{r}
 mr_allinc3 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
@@ -282,20 +292,29 @@ mr_allinc3 <- rma.mv(yi = lnRR,
                    data = all1)
 
 summary(mr_allinc3)
+# Test of Moderators (coefficient 2):
+# F(df1 = 1, df2 = 200) = 7.5275, p-val = 0.0066
+
+#        estimate     se    tval   df   pval    ci.lb  ci.ub
+# intrcpt	0.4493	0.1004	4.4745	200	<.0001	0.2513	0.6473	***
+# Number_pattern	-0.0590	0.0215	-2.7436	200	0.0066	-0.1015	-0.0166	**
+
 r2_ml(mr_allinc3)
 # R2_marginal R2_conditional 
 # 0.02978747     0.77868041 
 
-bubble_plot(mr_allinc3,
-            mod = "Number_pattern",
-            group = "Study_ID",
-            xlab = "Number")
+p4_all_inc <- bubble_plot(mr_allinc3,
+              mod = "Number_pattern",
+              group = "Study_ID",
+              xlab = "Number") +
+              scale_fill_manual(values = met.brewer("Hokusai2", 2)) +
+              scale_colour_manual(values = met.brewer("Hokusai2", 2))
 
 #FIXME - Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
 #replacement has 0 rows, data has 200
 ```
 
-#### type of prey
+type of prey - bird responses did not change the type of prey (Real or artificial)
 ```{r}
 mr_allinc4 <- rma.mv(yi = lnRR,
        V = lnRR_var, 
@@ -309,19 +328,36 @@ mr_allinc4 <- rma.mv(yi = lnRR,
        data = all1)
 
 summary(mr_allinc4)
-r2_ml(mr_allinc4)
+#                      estimate     se    tval   df   pval    ci.lb  ci.ub
+# Type_prey artificial	0.2896	0.1092	2.6521	200	0.0086	0.0743	0.5050	**
+# Type_prey real	      0.2965	0.1372	2.1615	200	0.0318	0.0260	0.5670	*
 
-orchard_plot(mr_allinc4,
+# Compare two stimuli (from no adding -1)
+# Test of Moderators (coefficient 2):
+# F(df1 = 1, df2 = 200) = 0.0015, p-val = 0.9686 
+
+r2_ml(mr_allinc4)
+#  R2_marginal   R2_conditional 
+#  3.479536e-05   7.861733e-01 
+  
+p5_all_inc <- orchard_plot(mr_allinc4,
              mod = "Type_prey",
              group = "Study_ID",
-             xlab = "Type of prey")
+             xlab = "Type of prey", 
+             angle = 45) +
+             scale_fill_manual(values = met.brewer("OKeeffe1", 2)) +
+             scale_colour_manual(values = met.brewer("OKeeffe1", 2))
+
+p5_all_inc
+ggsave("type_prey_all_inc.pdf", dpi = 450)
+
 ```
 
-#### shape of prey
+shape of prey - 
 ```{r}
 mr_allinc5 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
-                   mods = ~ Shape_prey,
+                   mods = ~ Shape_prey - 1,
                    random = list(~1 | Study_ID,
                                  ~1 | Cohort_ID, 
                                  ~1 | Shared_control_ID),
@@ -331,15 +367,30 @@ mr_allinc5 <- rma.mv(yi = lnRR,
                    data = all1)
 
 summary(mr_allinc5)
+#                               estimate      se    tval   df   pval    ci.lb  ci.ub
+# Shape_prey abstract_butterfly 	0.3883	0.1522	2.5517	198	0.0115	0.0882	0.6883	*
+# Shape_prey abstract_stimuli	    0.6943	0.2953	2.3512	198	0.0197	0.1120	1.2767	*
+# Shape_prey butterfly	          0.2947	0.1340	2.1990	198	0.0290	0.0304	0.5590	*
+# Shape_prey caterpillar      	  0.0237	0.1716	0.1383	198	0.8902	-0.3147	0.3622
 
-orchard_plot(mr_allinc5,
+p6_all_inc <- orchard_plot(mr_allinc5,
              mod = "Shape_prey",
              group = "Study_ID",
-             xlab = "Shape of prey")
+             xlab = "Shape of prey", 
+             angle = 45) +
+             scale_fill_manual(values = met.brewer("Derain")) +
+             scale_colour_manual(values = met.brewer("Derain"))
+
+p6_all_inc
+ggsave("shape_prey_all_inc.pdf", dpi = 450)
+
 
 ```
 
+
 Response -> decrease dataset
+## meta-analysis
+salient pattern stimuli did not decrease bird responses, heterogeneity across effect sizes was high
 ```{r}
 # decrease dataset
 all2 <- effect_lnRR_test(all_dec)
@@ -362,6 +413,9 @@ ma_all_dec <- rma.mv(yi = lnRR,
        data = all2)
 
 summary(ma_all_dec)
+# estimate      se     tval  df    pval    ci.lb   ci.ub    
+# -0.1497  0.1066  -1.4037  60  0.1656  -0.3629  0.0636   
+
 i2_ml(ma_all_dec)
  
 #                 I2_Total              I2_Study_ID              I2_Cohort_ID            I2_Shared_control_ID 
@@ -379,7 +433,44 @@ p1_all_dec
 
 ggsave("overall_all_inc.pdf", dpi = 450)
 ```
-#### area of pattern
+
+## meta-regression
+eyespot or conspicuous? 
+```{r}
+mr_alldec1 <- rma.mv(yi = lnRR,
+       V = lnRR_var, 
+       mods = ~ Treatment_stimulus - 1,
+       random = list(~1 | Study_ID,
+                     ~1 | Cohort_ID,
+                     ~1 | Shared_control_ID),
+       test = "t",
+       method = "REML", 
+       sparse = TRUE,
+       data = all2)
+
+summary(mr_alldec1)
+#                                estimate       se    tval    df    pval    ci.lb  ci.ub
+# Treatment_stimulus conspicuous	-0.2452	  0.2400	-1.0219	  59	0.3110	-0.7254	0.2350	
+# Treatment_stimulus eyespot	   -0.1317	  0.1304	-1.0103	  59	0.3165	-0.3926	0.1292	
+
+r2_ml(mr_alldec1)
+#   R2_marginal R2_conditional 
+#    0.01030396     0.37538438  
+
+p2_alldec <- orchard_plot(mr_alldec1,
+             mod = "Treatment_stimulus",
+             group = "Study_ID",
+             xlab = "log response ratio (lnRR)",
+             angle = 45) +
+             scale_fill_manual(values = met.brewer("Homer2", 2)) +
+             scale_colour_manual(values = met.brewer("Homer2", 2))
+p2_alldec
+
+ggsave("treatment_all_dec.pdf", dpi = 450)
+```
+
+
+area of pattern
 ```{r}
 mr_alldec2 <- rma.mv(yi = lnRR,
        V = lnRR_var, 
@@ -393,9 +484,13 @@ mr_alldec2 <- rma.mv(yi = lnRR,
        data = all2)
 
 summary(mr_alldec2)
+#              estimate    se    tval   df    pval    ci.lb  ci.ub
+# intrcpt	      -0.0124	0.1219	-0.1020	59	0.9191	-0.2564	0.2315	
+# Area_pattern	-0.0010	0.0005	-1.8602	59	0.0678	-0.0020	0.0001
+
 r2_ml(mr_alldec2)
 #   R2_marginal R2_conditional 
-#     0.3395119      0.8654739 
+#     0.2340717      0.4289061  
 
 # plotしたいんだけどなー
 bubble_plot(mr_alldec2,
@@ -421,9 +516,14 @@ mr_alldec3 <- rma.mv(yi = lnRR,
                    data = all2)
 
 summary(mr_alldec3)
+#                 estimate    se    tval   df    pval    ci.lb  ci.ub
+# intrcpt	         0.1422	0.2123	0.6696	59	0.5057	-0.2826	0.5669	
+# Number_pattern	-0.1271	0.0729	-1.7437	59	0.0864	-0.2729	0.0187	.
+
+
 r2_ml(mr_alldec3)
 # R2_marginal R2_conditional 
-# 0.02978747     0.77868041 
+#   0.0414735      0.3759885  
 
 bubble_plot(mr_alldec3,
             mod = "Number_pattern",
@@ -438,7 +538,7 @@ bubble_plot(mr_alldec3,
 ```{r}
 mr_alldec4 <- rma.mv(yi = lnRR,
        V = lnRR_var, 
-       mods = ~ Type_prey,
+       mods = ~ Type_prey - 1,
        random = list(~1 | Study_ID,
                      ~1 | Cohort_ID, 
                      ~1 | Shared_control_ID),
@@ -448,18 +548,28 @@ mr_alldec4 <- rma.mv(yi = lnRR,
        data = all2)
 
 summary(mr_alldec4)
+#                      estimate    se    tval   df    pval    ci.lb  ci.ub
+# Type_prey artificial	-0.1201	0.1455	-0.8253	59	0.4125	-0.4112	0.1711	
+# Type_prey real	      -0.2235	0.1890	-1.1825	59	0.2417	-0.6016	0.1547	
+
+r2_ml(mr_alldec4)
+#   R2_marginal R2_conditional 
+#   0.007396539    0.385594282 
 
 orchard_plot(mr_alldec4,
              mod = "Type_prey",
              group = "Study_ID",
-             xlab = "Type of prey")
+             xlab = "Type of prey",
+             angle = 45)
+
+ggsave("type_prey_all_dec.pdf", dpi = 450)
 ```
 
 #### shape of prey
 ```{r}
 mr_alldec5 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
-                   mods = ~ Shape_prey,
+                   mods = ~ Shape_prey - 1,
                    random = list(~1 | Study_ID,
                                  ~1 | Cohort_ID, 
                                  ~1 | Shared_control_ID),
@@ -469,15 +579,27 @@ mr_alldec5 <- rma.mv(yi = lnRR,
                    data = all2)
 
 summary(mr_alldec5)
+#                               estimate      se    tval   df    pval    ci.lb  ci.ub
+# Shape_prey abstract_butterfly	  0.0174	0.2499	0.0698	57	0.9446	-0.4831	0.5179	
+# Shape_prey abstract_stimuli	   -0.5405	0.2187	-2.4715	57	0.0165	-0.9784	-0.1026	
+# Shape_prey butterfly	         -0.2137	0.1722	-1.2411	57	0.2197	-0.5585	0.1311	
+# Shape_prey caterpillar        	0.2153	0.2211	0.9736	57	0.3344	-0.2275	0.6580	
+
+r2_ml(mr_alldec5)
+#   R2_marginal R2_conditional 
+#    0.4038134      0.6096733 
 
 orchard_plot(mr_alldec5,
              mod = "Shape_prey",
              group = "Study_ID",
-             xlab = "Shape of prey")
+             xlab = "Shape of prey", 
+             angle = 45)
+
+ggsave("shape_prey_all_dec.pdf", dpi = 450)
 
 ```
 
-
+## respponse increase predator 
 ```{r}
 trees_inc <- read.nexus(here("~/Desktop/2023 Australia_MA/increase.nex"), tree.names = T)
 tips_i <- pred_inc$Bird_species
@@ -506,9 +628,147 @@ ma_pred_inc <- rma.mv(yi = lnRR,
 
 summary(ma_pred_inc)
 i2_ml(ma_pred_inc)
+#           I2_Total          I2_Study_ID         I2_Cohort_ID I2_Shared_control_ID      I2_Bird_species 
+ #       9.882034e+01         2.191047e-07         5.272886e+01         4.609148e+01         4.519088e-11 
+```
+
+## meta-regression
+### eyespot or conspicuous?
+```{r}
+mr_dat2inc<- rma.mv(yi = lnRR,
+       V = lnRR_var, 
+       mods = ~ Treatment_stimulus -1,
+       random = list(~1 | Study_ID,
+                     ~1 | Cohort_ID,
+                     ~1 | Shared_control_ID),
+       test = "t",
+       method = "REML", 
+       sparse = TRUE,
+       data = dat2_inc)
+
+summary(mr_dat2inc)
+
+r2_ml(mr_dat2inc)
+#   R2_marginal R2_conditional 
+#   0.003749291    0.471951319  
+
+p2_dat2inc <- orchard_plot(mr_dat2inc,
+             mod = "Treatment_stimulus",
+             group = "Study_ID",
+             xlab = "log response ratio (lnRR)",
+             angle = 45) +
+             scale_fill_manual(values = met.brewer("Homer2", 2)) +
+            scale_colour_manual(values = met.brewer("Homer2", 2))
+p2_dat2inc
+
+ggsave("treatment_all_inc.pdf", dpi = 450)
+```
+
+#### area of pattern
+```{r}
+mr_predinc2 <- rma.mv(yi = lnRR,
+       V = lnRR_var, 
+       mods = ~ Area_pattern,
+       random = list(~1 | Study_ID,
+                     ~1 | Cohort_ID, 
+                     ~1 | Shared_control_ID),
+       test = "t",
+       method = "REML", 
+       sparse = TRUE,
+       data = dat2_inc)
+
+summary(mr_predinc2)
+#        estimate     se    tval   df   pval    ci.lb  ci.ub
+# intrcpt	0.0384	0.2262	0.1698	77	0.8656	-0.4120	0.4888	
+# Area_pattern	0.0013	0.0010	1.3222	77	0.1900	-0.0006	0.0032
+
+r2_ml(mr_predinc2)
+#   R2_marginal R2_conditional 
+#     0.1179858      0.5457952 
+
+# plotしたいんだけどなー
+bubble_plot(mr_allinc2,
+             mod = "Area_pattern",
+             group = "Study_ID",
+             xlab = "Area (mm2)")
+
+#FIXME - Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
+#replacement has 0 rows, data has 200
+```
+
+#### number of pattern
+```{r}
+mr_predinc3 <- rma.mv(yi = lnRR,
+                   V = lnRR_var, 
+                   mods = ~ Number_pattern,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Cohort_ID, 
+                                 ~1 | Shared_control_ID),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat2_inc)
+
+summary(mr_predinc3)
+r2_ml(mr_predinc3)
+# R2_marginal R2_conditional 
+# 0.02978747     0.77868041 
+
+bubble_plot(mr_predinc3,
+            mod = "Number_pattern",
+            group = "Study_ID",
+            xlab = "Number")
+
+#FIXME - Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
+#replacement has 0 rows, data has 200
+```
+
+#### type of prey
+```{r}
+mr_predinc4 <- rma.mv(yi = lnRR,
+       V = lnRR_var, 
+       mods = ~ Type_prey,
+       random = list(~1 | Study_ID,
+                     ~1 | Cohort_ID, 
+                     ~1 | Shared_control_ID),
+       test = "t",
+       method = "REML", 
+       sparse = TRUE,
+       data = dat2_inc)
+
+summary(mr_predinc4)
+r2_ml(mr_predinc4)
+
+orchard_plot(mr_predinc4,
+             mod = "Type_prey",
+             group = "Study_ID",
+             xlab = "Type of prey")
+```
+
+#### shape of prey
+```{r}
+mr_predinc5 <- rma.mv(yi = lnRR,
+                   V = lnRR_var, 
+                   mods = ~ Shape_prey,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Cohort_ID, 
+                                 ~1 | Shared_control_ID),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat2_inc)
+
+summary(mr_predinc5)
+
+orchard_plot(mr_allinc5,
+             mod = "Shape_prey",
+             group = "Study_ID",
+             xlab = "Shape of prey")
+
+```
 
 
-
+```{r}
 trees_dec <- read.nexus(here("~/Desktop/2023 Australia_MA/decrease.nex"), tree.names = T)
 tips_d <- pred_dec$Bird_species
 pruned.trees_d <- lapply(trees,keep.tip,tip=tips_d)
