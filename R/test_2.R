@@ -127,6 +127,12 @@ bubble_plot(mr_prey1,
             mod = "Diameter_pattern",
             group = "Study_ID",
             xlab = "Diameter (mm)")
+
+install.packages("pacman")
+pacman::p_load(devtools, tidyverse, metafor, patchwork, R.rsp, emmeans)
+
+devtools::install_github("daniel1noble/orchaRd", force = TRUE)
+library(orchaRd)
 # plotしたいんだけどなぁ
 # FIXME - Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
 # replacement has 0 rows, data has 146
