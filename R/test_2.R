@@ -36,7 +36,7 @@ hist(dat1$lnRR_var)
 #which(dat1$lnRR == min(dat1$lnRR))
 
 # meta-analysis
-#dat1$Shared_control_ID <- 1:nrow(dat1)
+dat1$Obs_ID <- 1:nrow(dat1)
 
 ma_prey <- rma.mv(yi = lnRR,
                   V = lnRR_var, 
@@ -77,7 +77,7 @@ mr_prey <- rma.mv(yi = lnRR,
                   mods = ~ Treatment_stimulus -1,
                   random = list(~1 | Study_ID,
                                 ~1 | Cohort_ID,
-                                ~1 | Shared_control_ID),
+                                ~1 | Obs_ID),
                   test = "t",
                   method = "REML", 
                   sparse = TRUE,
@@ -108,7 +108,7 @@ mr_prey1 <- rma.mv(yi = lnRR,
                    mods = ~ Diameter_pattern,
                    random = list(~1 | Study_ID,
                                  ~1 | Cohort_ID,
-                                 ~1 | Shared_control_ID),
+                                 ~1 | Obs_ID),
                    test = "t",
                    method = "REML", 
                    sparse = TRUE,
@@ -122,7 +122,7 @@ summary(mr_prey1)
 r2_ml(mr_prey1)
 # R2_marginal R2_conditional 
 # 0.3967114      0.6990439 
-
+res <- mod_results(mr_prey1, group = "Study_ID")
 bubble_plot(mr_prey1,
             mod = "Diameter_pattern",
             group = "Study_ID",
