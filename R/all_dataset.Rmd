@@ -431,7 +431,7 @@ p1_all_dec <-  orchard_plot(ma_all_dec,
              scale_colour_manual(values = met.brewer("Renoir", direction = -1))
 p1_all_dec
 
-ggsave("overall_all_inc.pdf", dpi = 450)
+ggsave("overall_all_dec.pdf", dpi = 450)
 ```
 
 ## meta-regression
