@@ -1,4 +1,6 @@
 # read libraries
+install.packages("metafor")
+install.packages(orchaRd)
 library(ape)
 library(here)
 library(metafor)
@@ -12,8 +14,7 @@ dat_prey <- read_csv(here("data/prey_22072023.csv"))
 dat_pred <- read_csv(here("data/predator_22072023.csv"))
 dat_prey <- dat_prey[1:146,] # exclude unclear report
 
-dat_all <-  read_csv(here("data/all_25072023.csv"))
-dat_all <-  dat_all[1:263,] # exclude unclear report
+dat_all <-  read_csv(here("data/all_31072023.csv"))
 dim(dat_prey)
 dim(dat_pred)
 dim(dat_all)
@@ -64,11 +65,11 @@ p1_prey <-  orchard_plot(ma_prey,
              scale_y_continuous(limit = c(-1, 2.5), breaks = seq(-1, 2.5, 0.5)) +
              scale_fill_manual(values = "paleturquoise3") +
              scale_colour_manual(values = "paleturquoise3")
-
-ggsave("overall_prey.pdf", dpi = 450)
+p1_prey
+ggsave("overall_prey_2.pdf", dpi = 450)
 
 p1_prey_cat <- caterpillars(ma_prey, group = "Study_ID", xlab = "log response ratio (lnRR)")
-ggsave("overall_cat_prey.pdf", dpi = 450)
+ggsave("overall_cat_prey.pdf", p1_prey_cat, dpi = 450)
 
 # meta-regression
 # eyespot or conspicuous?
@@ -100,7 +101,7 @@ p2_prey <- orchard_plot(mr_prey,
              scale_y_continuous(limit = c(-1, 2.5), breaks = seq(-1, 2.5, 0.5)) +
              scale_fill_manual(values = met.brewer("Homer2", 2)) +
              scale_colour_manual(values = met.brewer("Homer2", 2))
-ggsave("treatment_prey.pdf", dpi = 450)
+ggsave("treatment_prey.pdf", p2_prey, dpi = 450)
 
 # size
 mr_prey1 <- rma.mv(yi = lnRR,
@@ -123,7 +124,7 @@ r2_ml(mr_prey1)
 # R2_marginal R2_conditional 
 # 0.3967114      0.6990439 
 res <- mod_results(mr_prey1, group = "Study_ID")
-bubble_plot(mr_prey1,
+bubble_plot(res,
             mod = "Diameter_pattern",
             group = "Study_ID",
             xlab = "Diameter (mm)")
@@ -506,7 +507,7 @@ dat_all <- dat_all %>%
 
 summary(dat_all)
 
-dat3 <- effect_lnRR(dat_all)
+dat3 <- effect_lnRR_test2(dat_all)
 
 hist(dat3$lnRR) 
 hist(dat3$lnRR_var)
@@ -520,7 +521,8 @@ ma_all <- rma.mv(yi = lnRR,
                   V = lnRR_var, 
                   random = list(~1 | Study_ID,
                                 ~1 | Cohort_ID,
-                                ~1 | Shared_control_ID),
+                                ~1 | Shared_control_ID,
+                                ~1 | Obs_ID),
                   test = "t",
                   method = "REML", 
                   sparse = TRUE,
@@ -535,14 +537,14 @@ i2_all
 #   I2_Total          I2_Study_ID         I2_Cohort_ID I2_Shared_control_ID 
 #   96.62613             24.89248             24.19243             47.54122 
 
-p1_all <-  orchard_plot(ma_all,
+p1_all_test2 <-  orchard_plot(ma_all,
                         group = "Study_ID",
                         xlab = "log response ratio (lnRR)", angle = 45) +
                         scale_x_discrete(labels = c("Overall effect")) +
                         scale_fill_manual(values = met.brewer("Homer2")) +
                         scale_colour_manual(values = met.brewer("Homer2"))
 
-p1_all
+p1_all_test2
 ggsave("overall_all.pdf", dpi = 450)
 
 p1_all_cat <- caterpillars(ma_all, group = "Study_ID", xlab = "log response ratio (lnRR)")
