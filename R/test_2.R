@@ -1,6 +1,4 @@
 # read libraries
-install.packages("metafor")
-install.packages(orchaRd)
 library(ape)
 library(here)
 library(metafor)
@@ -12,8 +10,6 @@ library(tidyverse)
 # get data
 dat_prey <- read_csv(here("data/prey_22072023.csv"))
 dat_pred <- read_csv(here("data/predator_22072023.csv"))
-dat_prey <- dat_prey[1:146,] # exclude unclear report
-
 dat_all <-  read_csv(here("data/all_31072023.csv"))
 dim(dat_prey)
 dim(dat_pred)
@@ -257,25 +253,11 @@ ggsave("shape_prey_prey.pdf", dpi = 450)
 # predator
 ##########
 # TODO - phylogeny ask and check
-# Use 1,000 trees downloaded from www.birdtree.org based on predator dataset, 
-# compute the maximum clade credibility tree, compute branch lengths, compute the correlation matrix
-trees <- read.nexus(here("data/bird_phy.nex"), tree.names = T)
-tips <- dat_pred$Bird_species
-pruned.trees <- lapply(trees,keep.tip,tip=tips)
-class(pruned.trees) <- "multiPhylo" 
+t <- 50 # number of trees
+phylo_vcv <- lapply(1:t, function(i) vcv(trees[[i]], corr = TRUE))
+phylo_vcv
 
-mcc_pruned <- maxCladeCred(pruned.trees)
-mcc_pruned <- ladderize(mcc_pruned)
-mcc_pruned$tip.label
-# [1] "Gallus_gallus"       "Cyanocitta_cristata" "Sturnus_vulgaris"   
-# [4] "Ficedula_hypoleuca"  "Emberiza_sulphurata" "Parus_major"        
-# [7] "Parus_caeruleus" 
 
-mcc_ult <- compute.brlen(mcc_pruned, power = 1)
-phylo_cor <- vcv(mcc_ult, cor=T)
-
-plot.phylo(mcc_ult) 
-summary(phylo_cor[row(phylo_cor)!=col(phylo_cor)])
 
 # turn all character strings to factor
 dat_pred <- dat_pred %>%
@@ -283,42 +265,72 @@ dat_pred <- dat_pred %>%
 
 summary(dat_pred)
 
+dat2$Obs_ID <- 1:nrow(dat2)
 dat2 <- effect_lnRR(dat_pred)
 
 hist(dat2$lnRR) 
 hist(dat2$lnRR_var)
 
 # meta-analysis
-# dat2$Shared_control_ID <- 1:nrow(dat2)
-
+# TODO loopを走らせるかな…
 ma_pred <- rma.mv(yi = lnRR,
                   V = lnRR_var, 
                   random = list(~1 | Study_ID,
                                 ~1 | Cohort_ID, 
                                 ~1 | Shared_control_ID,
-                                ~1 | Bird_species),
-                  R = list(Bird_species = phylo_cor), 
+                                ~1 | Bird_species,
+                                ~1 | Bird_species,
+                                ~1 | Obs_ID),
+                  R = list(Bird_species = phylo_vcv), 
                   test = "t",
                   method = "REML", 
                   sparse = TRUE,
                   data = dat2)
 
 summary(ma_pred)
-# estimate      se     tval   df    pval    ci.lb   ci.ub    
-# -0.0496  0.1255  -0.3952  116  0.6934  -0.2981  0.1989    
 
-i2_ml(ma_pred)　#TODO something is wrong - Study_ID
-#     I2_Total          I2_Study_ID         I2_Cohort_ID 
-# 9.899186e+01         2.848359e-06         6.143187e+01 
-# I2_Shared_control_ID      I2_Bird_species 
-#         3.755998e+01         3.497049e-07 
+i2_ml(ma_pred)
 
+###
+t <- 50 # number of trees
+phylo_vcv <- lapply(1:t, function(i) vcv(trees[[i]], corr = TRUE))
+phylo_vcv
+
+
+ma_pred_test <- lapply(phylo_vcv, function(phylo_vcv) {
+  rma.mv(yi = lnRR,
+         V = lnRR_var,
+         random = list(~1 | Study_ID,
+                       ~1 | Cohort_ID, 
+                       ~1 | Shared_control_ID,
+                       ~1 | Bird_species,
+                       ~1 | Bird_species,
+                       ~1 |Obs_ID),
+         R = list(Bird_species = phylo_vcv), 
+         test = "t",
+         method = "REML",
+         sparse = TRUE,
+         data = dat2)
+})
+aic_values <- sapply(ma_pred_test, AIC)
+
+# search best fit model
+min_aic <- min(aic_values)
+
+# get the index and result of the model with the smallest AIC value
+best_model_index <- which(aic_values == min_aic)
+best_model_result <- ma_pred_test[[best_model_index]]
+print(best_model_result)
+
+i2_ml(ma_pred_test[[37]])
+###
 orchard_plot(ma_pred,
              group = "Study_ID",
              xlab = "log response ratio (lnRR)", angle = 45) +
              scale_x_discrete(labels = c("Overall effect")) +
              scale_fill_manual(values = "darkolivegreen3") +
              scale_colour_manual(values = "darkolivegreen3")
+
 ggsave("overall_predator.pdf", dpi = 450)
 
 caterpillars(ma_pred, group = "Study_ID", xlab = "log response ratio (lnRR)")
@@ -507,12 +519,12 @@ dat_all <- dat_all %>%
 
 summary(dat_all)
 
-dat3 <- effect_lnRR_test2(dat_all)
+dat3$Obs_ID <- 1:nrow(dat3)
+
+dat3 <- effect_lnRR(dat_all)
 
 hist(dat3$lnRR) 
 hist(dat3$lnRR_var)
-
-#which(dat1$lnRR == min(dat1$lnRR))
 
 # meta-analysis
 #dat1$Shared_control_ID <- 1:nrow(dat1)
