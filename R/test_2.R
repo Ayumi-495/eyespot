@@ -15,6 +15,8 @@ dim(dat_prey)
 dim(dat_pred)
 dim(dat_all)
 
+trees <- read.nexus(here("data/bird_phy.nex"))
+
 ##########
 # prey
 ##########
@@ -30,7 +32,6 @@ dat1 <- effect_lnRR(dat_prey)
 hist(dat1$lnRR) 
 hist(dat1$lnRR_var)
 
-#which(dat1$lnRR == min(dat1$lnRR))
 
 # meta-analysis
 dat1$Obs_ID <- 1:nrow(dat1)
@@ -39,7 +40,8 @@ ma_prey <- rma.mv(yi = lnRR,
                   V = lnRR_var, 
                   random = list(~1 | Study_ID,
                                 ~1 | Cohort_ID,
-                                ~1 | Shared_control_ID),
+                                ~1 | Shared_control_ID,
+                                ~1 | Obs_ID),
                   test = "t",
                   method = "REML", 
                   sparse = TRUE,
@@ -193,7 +195,7 @@ bubble_plot(mr_prey3,
 # type of prey
 mr_prey4 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
-                   mods = ~ Type_prey　-1,
+                   mods = ~ Type_prey-1,
                    random = list(~1 | Study_ID,
                                  ~1 | Cohort_ID, 
                                  ~1 | Shared_control_ID),
@@ -252,12 +254,6 @@ ggsave("shape_prey_prey.pdf", dpi = 450)
 ##########
 # predator
 ##########
-# TODO - phylogeny ask and check
-t <- 50 # number of trees
-phylo_vcv <- lapply(1:t, function(i) vcv(trees[[i]], corr = TRUE))
-phylo_vcv
-
-
 
 # turn all character strings to factor
 dat_pred <- dat_pred %>%
@@ -265,14 +261,13 @@ dat_pred <- dat_pred %>%
 
 summary(dat_pred)
 
-dat2$Obs_ID <- 1:nrow(dat2)
 dat2 <- effect_lnRR(dat_pred)
+dat2$Obs_ID <- 1:nrow(dat2)
 
 hist(dat2$lnRR) 
 hist(dat2$lnRR_var)
 
 # meta-analysis
-# TODO loopを走らせるかな…
 ma_pred <- rma.mv(yi = lnRR,
                   V = lnRR_var, 
                   random = list(~1 | Study_ID,
@@ -291,39 +286,6 @@ summary(ma_pred)
 
 i2_ml(ma_pred)
 
-###
-t <- 50 # number of trees
-phylo_vcv <- lapply(1:t, function(i) vcv(trees[[i]], corr = TRUE))
-phylo_vcv
-
-
-ma_pred_test <- lapply(phylo_vcv, function(phylo_vcv) {
-  rma.mv(yi = lnRR,
-         V = lnRR_var,
-         random = list(~1 | Study_ID,
-                       ~1 | Cohort_ID, 
-                       ~1 | Shared_control_ID,
-                       ~1 | Bird_species,
-                       ~1 | Bird_species,
-                       ~1 |Obs_ID),
-         R = list(Bird_species = phylo_vcv), 
-         test = "t",
-         method = "REML",
-         sparse = TRUE,
-         data = dat2)
-})
-aic_values <- sapply(ma_pred_test, AIC)
-
-# search best fit model
-min_aic <- min(aic_values)
-
-# get the index and result of the model with the smallest AIC value
-best_model_index <- which(aic_values == min_aic)
-best_model_result <- ma_pred_test[[best_model_index]]
-print(best_model_result)
-
-i2_ml(ma_pred_test[[37]])
-###
 orchard_plot(ma_pred,
              group = "Study_ID",
              xlab = "log response ratio (lnRR)", angle = 45) +
@@ -527,7 +489,7 @@ hist(dat3$lnRR)
 hist(dat3$lnRR_var)
 
 # meta-analysis
-#dat1$Shared_control_ID <- 1:nrow(dat1)
+dat1$Shared_control_ID <- 1:nrow(dat1)
 
 ma_all <- rma.mv(yi = lnRR,
                   V = lnRR_var, 
@@ -734,4 +696,3 @@ orchard_plot(mr_all5,
              group = "Study_ID",
              xlab = "Shape of prey")
 ggsave("shape_prey_all.pdf", dpi = 450)
-
