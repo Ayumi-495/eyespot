@@ -1,10 +1,8 @@
 # read libraries
 library(here)
-library(metafor)
 library(MetBrewer)
-library(orchaRd)
 library(phangorn)
-library(tidyverse)
+library(orchaRd)
 
 # get data
 dat_all <-  read_csv(here("data/all_31072023.csv"))
@@ -25,7 +23,10 @@ dat$Obs_ID <- 1:nrow(dat)
 hist(dat$lnRR) 
 hist(dat$lnRR_var)
 
-# meta-analysis
+###############
+# meta-analysis#
+###############
+# I may exclude cohort_ID because sigma^2.2 = 0 and I2 = 0
 ma_all <- rma.mv(yi = lnRR,
                   V = lnRR_var, 
                   random = list(~1 | Study_ID,
@@ -63,6 +64,7 @@ i2_all
 #         9.850300e+01         2.241821e+01         1.187997e-07 
 # I2_Shared_control_ID            I2_Obs_ID 
 #        6.722317e+00         6.936247e+01 
+
 p1_all <-  orchard_plot(ma_all,
                         group = "Study_ID",
                         xlab = "log response ratio (lnRR)", angle = 45) +
@@ -80,7 +82,26 @@ ggsave("overall_cat_all.pdf", dpi = 450)
 
 # check publication bias
 funnel(ma_all)
+dat$inv_n_tilda <-  with(dat, (Cn + Tn)/(Cn*Tn))
+dat$sqrt_inv_n_tilda <-  with(dat, sqrt(inv_n_tilda))
 
+publication_bias <- rma.mv(yi = lnRR,
+                            V = lnRR_var, 
+                            mods = ~ 1 + sqrt_inv_n_tilda,
+                            random = list(~1 | Study_ID,
+                                          ~1 | Cohort_ID,
+                                          ~1 | Shared_control_ID,
+                                          ~1 | Obs_ID),
+                            test = "t",
+                            method = "REML", 
+                            sparse = TRUE,
+                            data = dat)
+
+summary(publication_bias)
+bubble_plot(publication_bias,
+            mod = "sqrt_inv_n_tilda",
+            group = "Study_ID",
+            xlab = "sqrt(inv_n_tilda)")
 ###################
 # meta-regression #
 ###################

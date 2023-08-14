@@ -1,6 +1,5 @@
 library(metafor)
 library(tidyverse)
-library(orchaRd)
 
 ## calculate effect size and its variation ##
 
@@ -175,67 +174,3 @@ effect_lnRR <- function(dt) {
 
   return(dt1)
 }
-
-## test
-library(here)
-dat <- read.csv(here("data", "all_31072023.csv"))
-dat_all <- effect_lnRR(dat)
-
-dat_all$Obs_ID <- 1:nrow(dat_all)
-hist(dat_all$lnRR)
-hist(dat_all$lnRR_var)
-
-dat_all %>%
-  filter(lnRR > 4) %>%
-  arrange(lnRR) %>%
-  head(3) %>%
-  select(lnRR)
-#   lnRR
-# 1 4.062596
-# 2 4.167772
-
-which(dat_all$lnRR == max(dat_all$lnRR))
-# 9
-
-model1 <- rma.mv(
-  yi = lnRR,
-  V = lnRR_var,
-  random = list(
-    ~ 1 | Study_ID,
-    ~ 1 | Cohort_ID,
-    ~ 1 | Shared_control_ID,
-    ~ 1 | Obs_ID
-  ),
-  test = "t",
-  method = "REML",
-  sparse = TRUE,
-  data = dat_all
-)
-
-summary(model1)
-# Multivariate Meta-Analysis Model (k = 263; method: REML)
-
-#    logLik   Deviance        AIC        BIC       AICc   
-# -259.7358   519.4716   529.4716   547.3134   529.7060   
-
-# Variance Components:
-
- #            estim    sqrt  nlvls  fixed             factor 
-# sigma^2.1  0.0785  0.2802     32     no           Study_ID 
-# sigma^2.2  0.0000  0.0000    157     no          Cohort_ID 
-# sigma^2.3  0.0235  0.1534     88     no  Shared_control_ID 
-# sigma^2.4  0.2429  0.4928    263     no             Obs_ID 
-
-# Test for Heterogeneity:
-# Q(df = 262) = 6465.9171, p-val < .0001
-
-# Model Results:
-
-# estimate      se    tval   df    pval   ci.lb   ci.ub     
-#  0.2056  0.0707  2.9078  262  0.0040  0.0664  0.3448  ** 
-
-orchard_plot(model1,
-  group = "Study_ID",
-  xlab = "log response ratio (lnRR)",
-  angle = 45
-)

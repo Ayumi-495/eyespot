@@ -1,9 +1,8 @@
 # read libraries
 library(ape)
 library(here)
-library(metafor)
 library(phangorn)
-library(tidyverse)
+library(orchaRd)
 
 # get data
 dat_pred <- read_csv(here("data/predator_22072023.csv"))
