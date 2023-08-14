@@ -3,13 +3,14 @@ library(ape)
 library(here)
 library(phangorn)
 library(orchaRd)
+source("R/function_2.R")
 
 # get data
 dat_pred <- read_csv(here("data/predator_22072023.csv"))
 dim(dat_pred)
 
 # calculate lnRR and lnRR_var
-source("R/function_2.R")
+
 dat <- effect_lnRR(dat_pred)
 dat$Obs_ID <- 1:nrow(dat)
 
