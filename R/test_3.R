@@ -3,6 +3,7 @@ library(here)
 library(MetBrewer)
 library(phangorn)
 library(orchaRd)
+source("R/function_2.R")
 
 # get data
 dat_all <-  read_csv(here("data/all_31072023.csv"))
@@ -16,7 +17,6 @@ dat_all <- dat_all %>%
 summary(dat_all)
 
 # calculate lnRR and lnRR variance
-source("R/function_2.R")
 dat <- effect_lnRR(dat_all)
 dat$Obs_ID <- 1:nrow(dat)
 
