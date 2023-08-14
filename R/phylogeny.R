@@ -160,7 +160,7 @@ i2_ml(ma_pred_test1)
 # Use 1,000 trees downloaded from www.birdtree.org based on predator dataset, 
 # compute the maximum clade credibility tree, compute branch lengths, compute the correlation matrix
 tips <- dat_pred$Phylogeny
-pruned.trees <- lapply(trees,keep.tip,tip=tips)
+pruned.trees <- lapply(trees, keep.tip, tip=tips)
 class(pruned.trees) <- "multiPhylo" 
 
 mcc_pruned <- maxCladeCred(pruned.trees)
