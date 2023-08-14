@@ -1,9 +1,7 @@
 # read libraries
 library(ape)
-library(clubSandwich)
 library(here)
 library(metafor)
-library(orchaRd)
 library(phangorn)
 library(tidyverse)
 
