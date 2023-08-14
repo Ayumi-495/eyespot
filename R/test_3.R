@@ -1,7 +1,6 @@
 # read libraries
 library(here)
 library(MetBrewer)
-library(phangorn)
 library(orchaRd)
 source("R/function_2.R")
 
@@ -23,9 +22,9 @@ dat$Obs_ID <- 1:nrow(dat)
 hist(dat$lnRR) 
 hist(dat$lnRR_var)
 
-###############
-# meta-analysis#
-###############
+#################
+# meta-analysis # 
+#################
 # I may exclude cohort_ID because sigma^2.2 = 0 and I2 = 0
 ma_all <- rma.mv(yi = lnRR,
                   V = lnRR_var, 
