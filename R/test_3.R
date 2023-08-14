@@ -17,6 +17,8 @@ dat_all <- dat_all %>%
 
 summary(dat_all)
 
+# calculate lnRR and lnRR variance
+source("R/function_2.R")
 dat <- effect_lnRR(dat_all)
 dat$Obs_ID <- 1:nrow(dat)
 
@@ -76,8 +78,13 @@ p1_all_cat <- caterpillars(ma_all, group = "Study_ID", xlab = "log response rati
 p1_all_cat
 ggsave("overall_cat_all.pdf", dpi = 450)
 
-# meta-regression
-# eyespot or conspicuous?
+# check publication bias
+funnel(ma_all)
+
+###################
+# meta-regression #
+###################
+# 1. eyespot or conspicuous?
 mr_all <- rma.mv(yi = lnRR,
                   V = lnRR_var, 
                   mods = ~ Treatment_stimulus -1,
@@ -111,12 +118,13 @@ summary(mr_all)
 
 # Model Results:
 
-#                                estimate      se    tval   df    pval    ci.lb 
-# Treatment_stimulusconspicuous    0.1449  0.1125  1.2881  261  0.1989  -0.0766 
-# Treatment_stimuluseyespot        0.2308  0.0801  2.8819  261  0.0043   0.0731
+#                                 estimate      se    tval   df    pval    ci.lb 
+# Treatment_stimulus conspicuous    0.1449  0.1125  1.2881  261  0.1989  -0.0766 
+# Treatment_stimulus eyespot        0.2308  0.0801  2.8819  261  0.0043   0.0731
 #                                   ci.ub     
-#                                  0.3664   
-#                                  0.3885 ** 
+# Treatment_stimulus conspicuous   0.3664   
+# Treatment_stimulus eyespot       0.3885 ** 
+
 r2_ml(mr_all)
 #   R2_marginal R2_conditional 
 #   0.004373912    0.307613500   
@@ -133,7 +141,7 @@ p2_all
 ggsave("Treatment_all_11Aug.pdf", dpi = 450)
 
 
-# size
+# 2. size
 mr_all1 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
                    mods = ~ Diameter_pattern,
@@ -188,7 +196,7 @@ orchaRd::orchard_plot(SizeModel, xlab = "lnRR", angle = 45, g = FALSE,
 ggsave("Size_all_11Aug.pdf", dpi = 450)
 
 
-# area of pattern
+# 3. area of pattern
 mr_all2 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
                    mods = ~ Area_pattern,
@@ -257,7 +265,7 @@ orchaRd::orchard_plot(AreaModel, xlab = "lnRR", angle = 45, g = FALSE,
 
 ggsave("Area_all_11Aug.pdf", dpi = 450)
 
-# number of pattern
+# 4. number of pattern
 mr_all3 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
                    mods = ~ Number_pattern,
@@ -332,7 +340,7 @@ orchaRd::orchard_plot(NumModel, xlab = "lnRR", angle = 45, g = FALSE,
 ggsave("Number_all_11Aug.pdf", dpi = 450)
 
 
-# type of prey
+# 5. type of prey
 mr_all4 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
                    mods = ~ Type_prey -1,
@@ -376,7 +384,7 @@ orchard_plot(mr_all4,
 
 ggsave("type_prey_all.pdf", dpi = 450)
 
-# shape of prey
+# 6. shape of prey
 mr_all5 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
                    mods = ~ Shape_prey -1,
@@ -425,7 +433,7 @@ orchard_plot(mr_all5,
              xlab = "Shape of prey", angle = 45)
 ggsave("Shape_prey_all.pdf", dpi = 450)
 
-# ratio of background and pattern
+# 7. ratio of background and pattern
 mr_all6 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
                    mods = ~ Area_ratio,
@@ -464,6 +472,7 @@ summary(mr_all6)
 # intrcpt      -0.0706  0.0861  -0.8203  261  0.4128  -0.2401  0.0989      
 # Area_ratio    2.9897  0.7290   4.1012  261  <.0001   1.5542  4.4251  *** 
 
+# interaction between area of pattern and background
 mr_all6_1 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
                    mods = ~ Area_pattern * Area_background,
@@ -477,3 +486,34 @@ mr_all6_1 <- rma.mv(yi = lnRR,
                    data = dat)
 
 summary(mr_all6_1)
+
+#    logLik   Deviance        AIC        BIC       AICc   
+# -246.0685   492.1369   508.1369   536.5916   508.7129   
+
+# Variance Components:
+
+#             estim    sqrt  nlvls  fixed             factor 
+# sigma^2.1  0.0343  0.1853     32     no           Study_ID 
+# sigma^2.2  0.0000  0.0000    157     no          Cohort_ID 
+# sigma^2.3  0.0144  0.1201     88     no  Shared_control_ID 
+# sigma^2.4  0.2424  0.4923    263     no             Obs_ID 
+
+# Test for Residual Heterogeneity:
+# QE(df = 259) = 6202.0338, p-val < .0001
+
+# Test of Moderators (coefficients 2:4):
+# F(df1 = 3, df2 = 259) = 8.0952, p-val < .0001
+
+# Model Results:
+
+#                               estimate      se     tval   df    pval    ci.lb 
+# intrcpt                         0.1361  0.0905   1.5037  259  0.1339  -0.0421 
+# Area_pattern                    0.0028  0.0008   3.7314  259  0.0002   0.0013 
+# Area_background                -0.0000  0.0001  -0.4501  259  0.6530  -0.0001 
+# Area_pattern:Area_background   -0.0000  0.0000  -1.2589  259  0.2092  -0.0000 
+ #                               ci.ub      
+# intrcpt                       0.3142      
+# Area_pattern                  0.0043  *** 
+# Area_background               0.0001      
+# Area_pattern:Area_background  0.0000      
+
