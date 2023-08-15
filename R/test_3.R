@@ -1,11 +1,9 @@
 # read libraries
-library(here)
-library(MetBrewer)
-library(orchaRd)
+pacman::p_load(here, MetBrewer, orchaRd)
 source("R/function_2.R")
 
 # get data
-dat_all <-  read_csv(here("data/all_31072023.csv"))
+dat_all <-  read_csv(here("data/all_082023.csv"))
 dim(dat_all)
 
 
@@ -79,28 +77,6 @@ p1_all_cat <- caterpillars(ma_all, group = "Study_ID", xlab = "log response rati
 p1_all_cat
 ggsave("overall_cat_all.pdf", dpi = 450)
 
-# check publication bias
-funnel(ma_all)
-dat$inv_n_tilda <-  with(dat, (Cn + Tn)/(Cn*Tn))
-dat$sqrt_inv_n_tilda <-  with(dat, sqrt(inv_n_tilda))
-
-publication_bias <- rma.mv(yi = lnRR,
-                            V = lnRR_var, 
-                            mods = ~ 1 + sqrt_inv_n_tilda,
-                            random = list(~1 | Study_ID,
-                                          ~1 | Cohort_ID,
-                                          ~1 | Shared_control_ID,
-                                          ~1 | Obs_ID),
-                            test = "t",
-                            method = "REML", 
-                            sparse = TRUE,
-                            data = dat)
-
-summary(publication_bias)
-bubble_plot(publication_bias,
-            mod = "sqrt_inv_n_tilda",
-            group = "Study_ID",
-            xlab = "sqrt(inv_n_tilda)")
 ###################
 # meta-regression #
 ###################
@@ -537,3 +513,72 @@ summary(mr_all6_1)
 # Area_background               0.0001      
 # Area_pattern:Area_background  0.0000      
 
+# CHECK 
+####################
+# publication bias #
+####################
+# Funnel plot
+funnel(ma_all)
+
+dat$inv_n_tilda <-  with(dat, (Cn + Tn)/(Cn*Tn))
+dat$sqrt_inv_n_tilda <-  with(dat, sqrt(inv_n_tilda))
+
+publication_bias <- rma.mv(yi = lnRR,
+                            V = lnRR_var, 
+                            mods = ~ 1 + sqrt_inv_n_tilda,
+                            random = list(~1 | Study_ID,
+                                          ~1 | Cohort_ID,
+                                          ~1 | Shared_control_ID,
+                                          ~1 | Obs_ID),
+                            test = "t",
+                            method = "REML", 
+                            sparse = TRUE,
+                            data = dat)
+
+# FIXME 
+summary(publication_bias)
+bubble_plot(publication_bias,
+            mod = "sqrt_inv_n_tilda",
+            group = "Study_ID",
+            xlab = "sqrt(inv_n_tilda)")
+
+# Time-lag bias test
+publication.bias1 <- rma.mv(yi = lnRR,
+                            V = lnRR_var, 
+                            mods = ~ 1 + Year,
+                            random = list(~1 | Study_ID,
+                                          ~1 | Cohort_ID,
+                                          ~1 | Shared_control_ID,
+                                          ~1 | Obs_ID),
+                            test = "t",
+                            method = "REML", 
+                            sparse = TRUE,
+                            data = dat)
+
+summary(publication.bias1)
+# Multivariate Meta-Analysis Model (k = 263; method: REML)
+
+#    logLik   Deviance        AIC        BIC       AICc   
+# -258.6833   517.3667   529.3667   550.7538   529.6974   
+
+# Variance Components:
+
+#             estim    sqrt  nlvls  fixed             factor 
+# sigma^2.1  0.0795  0.2820     32     no           Study_ID 
+# sigma^2.2  0.0000  0.0000    157     no          Cohort_ID 
+# sigma^2.3  0.0236  0.1536     88     no  Shared_control_ID 
+# sigma^2.4  0.2438  0.4938    263     no             Obs_ID 
+
+# Test for Residual Heterogeneity:
+# QE(df = 261) = 6465.2221, p-val < .0001
+
+# Test of Moderators (coefficient 2):
+# F(df1 = 1, df2 = 261) = 0.1494, p-val = 0.6994
+
+# Model Results:
+
+#          estimate       se     tval   df    pval     ci.lb    ci.ub    
+# intrcpt    5.7415  14.3209   0.4009  261  0.6888  -22.4578  33.9408    
+# Year      -0.0028   0.0071  -0.3866  261  0.6994   -0.0168   0.0113    
+
+r2_ml(publication.bias1)
