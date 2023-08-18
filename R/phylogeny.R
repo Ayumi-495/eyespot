@@ -223,7 +223,8 @@ i2_ml(ma_pred_test2)
 #         1.527690e-09  
 
 # test 4 - use vcalc()
-# CHECK 果たしてこれで良いのだろうか？
+# ASK Shinichi
+
 model_phy <- NULL
 phylo_vcv3 <- NULL
 
@@ -255,6 +256,7 @@ for (i in 1:50) {
    
  model_phy[[i]] <- ma_pred_test3
  print(i)
+
 }
 
 summary(model_phy[[1]])
@@ -281,6 +283,14 @@ summary(model_phy[[1]])
 # estimate      se    tval   df    pval    ci.lb   ci.ub    
 #   0.0747  0.1208  0.6187  116  0.5373  -0.1645  0.3139  
 
+i2_ml(model_phy[[1]])
+#         I2_Total          I2_Study_ID         I2_Cohort_ID 
+#         9.960611e+01         4.296546e-07         1.631066e+01 
+# I2_Shared_control_ID            I2_Obs_ID      I2_Bird_species 
+#         1.120302e+01         7.209242e+01         8.558411e-10 
+#         I2_Phylogeny 
+#         1.029748e-09 
+
 all.m.phy <- model_phy[[1]]$sigma2
 
 for (i in 2:50) {
@@ -290,5 +300,3 @@ all.m.phy <- data.frame(all.m.phy, byrow = TRUE)
 col_names <- c("sigma^2.1_Study_ID", "sigma^2.2_Cohort_ID", "sigma^2.3_SharedControl_ID", "sigma^2.4_Obs_ID", "sigma^2.5_BirdSpecies", "sigma^2.6_Phylogeny")
 colnames(all.m.phy) <- col_names
 print(all.m.phy)
-
-cov2cor(V)
