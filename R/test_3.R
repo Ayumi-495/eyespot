@@ -20,14 +20,13 @@ dat$Obs_ID <- 1:nrow(dat)
 hist(dat$lnRR) 
 hist(dat$lnRR_var)
 
-#################
-# meta-analysis # 
-#################
-# I may exclude cohort_ID because sigma^2.2 = 0 and I2 = 0
+
+# meta-analysis 
+# I exclude cohort_ID because sigma^2.2 = 0 and I2 = 0
+
 ma_all <- rma.mv(yi = lnRR,
                   V = lnRR_var, 
                   random = list(~1 | Study_ID,
-                                ~1 | Cohort_ID,
                                 ~1 | Shared_control_ID,
                                 ~1 | Obs_ID),
                   test = "t",
@@ -38,15 +37,14 @@ ma_all <- rma.mv(yi = lnRR,
 summary(ma_all)
 
 #    logLik   Deviance        AIC        BIC       AICc   
-# -259.7358   519.4716   529.4716   547.3134   529.7060   
+# -259.7358   519.4716   527.4716   541.7450   527.6273   
 
 # Variance Components:
 
 #             estim    sqrt  nlvls  fixed             factor 
 # sigma^2.1  0.0785  0.2802     32     no           Study_ID 
-# sigma^2.2  0.0000  0.0000    157     no          Cohort_ID 
-# sigma^2.3  0.0235  0.1534     88     no  Shared_control_ID 
-# sigma^2.4  0.2429  0.4928    263     no             Obs_ID 
+# sigma^2.2  0.0235  0.1534     88     no  Shared_control_ID 
+# sigma^2.3  0.2429  0.4928    263     no             Obs_ID 
 
 # Test for Heterogeneity:
 # Q(df = 262) = 6465.9171, p-val < .0001
@@ -57,10 +55,10 @@ summary(ma_all)
 
 i2_all <- i2_ml(ma_all)
 i2_all
-#             I2_Total          I2_Study_ID         I2_Cohort_ID 
-#         9.850300e+01         2.241821e+01         1.187997e-07 
-# I2_Shared_control_ID            I2_Obs_ID 
-#        6.722317e+00         6.936247e+01 
+#             I2_Total          I2_Study_ID         I2_Shared_control_ID 
+#         98.502998            22.418191             6.722398 
+#            I2_Obs_ID 
+#         69.362409 
 
 p1_all <-  orchard_plot(ma_all,
                         group = "Study_ID",
@@ -77,15 +75,15 @@ p1_all_cat <- caterpillars(ma_all, group = "Study_ID", xlab = "log response rati
 p1_all_cat
 ggsave("overall_cat_all.pdf", dpi = 450)
 
-###################
-# meta-regression #
-###################
-# 1. eyespot or conspicuous?
+# meta-regression 
+
+##############################
+# 1. eyespot or conspicuous? #
+##############################
 mr_all <- rma.mv(yi = lnRR,
                   V = lnRR_var, 
-                  mods = ~ Treatment_stimulus - 1,
+                  mods = ~ Treatment_stimulus,
                   random = list(~1 | Study_ID,
-                                ~1 | Cohort_ID,
                                 ~1 | Shared_control_ID,
                                 ~1 | Obs_ID),
                   test = "t",
@@ -95,15 +93,14 @@ mr_all <- rma.mv(yi = lnRR,
 
 summary(mr_all)
 #     logLik   Deviance        AIC        BIC       AICc      
-#  -258.6788   517.3576   529.3576   550.7447   529.6883   
+#  -258.6788   517.3576   527.3576   545.1802   527.5929     
 
 # Variance Components:
 
 #             estim    sqrt  nlvls  fixed             factor 
 # sigma^2.1  0.0831  0.2882     32     no           Study_ID  
-# sigma^2.2  0.0000  0.0000    157     no          Cohort_ID  
-# sigma^2.3  0.0234  0.1529     88     no  Shared_control_ID  
-# sigma^2.4  0.2430  0.4929    263     no             Obs_ID 
+# sigma^2.2  0.0234  0.1529     88     no  Shared_control_ID  
+# sigma^2.3  0.2430  0.4929    263     no             Obs_ID 
 
 # Test for Residual Heterogeneity:
 # QE(df = 261) = 6388.1567, p-val < .0001
@@ -135,12 +132,13 @@ p2_all <- orchard_plot(mr_all,
 p2_all
 ggsave("Treatment_all_11Aug.pdf", dpi = 450)
 
-# 2. size
+##########################
+# 2. Diameter of pattern #
+##########################
 mr_all1 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
                    mods = ~ Diameter_pattern,
                    random = list(~1 | Study_ID,
-                                 ~1 | Cohort_ID,
                                  ~1 | Shared_control_ID,
                                  ~1 | Obs_ID),
                    test = "t",
@@ -152,15 +150,14 @@ summary(mr_all1)
 # Multivariate Meta-Analysis Model (k = 263; method: REML)
 
 #   logLik   Deviance        AIC        BIC       AICc   
-# -258.0192   516.0385   528.0385   549.4256   528.3692   
+# -258.0192   516.0385   526.0385   543.8611   526.2738
 
 # Variance Components:
 
 #             estim    sqrt  nlvls  fixed             factor 
 # sigma^2.1  0.0858  0.2929     32     no           Study_ID 
-# sigma^2.2  0.0000  0.0000    157     no          Cohort_ID 
-# sigma^2.3  0.0207  0.1439     88     no  Shared_control_ID 
-# sigma^2.4  0.2433  0.4933    263     no             Obs_ID 
+# sigma^2.2  0.0207  0.1439     88     no  Shared_control_ID 
+# sigma^2.3  0.2433  0.4933    263     no             Obs_ID 
 
 # Test for Residual Heterogeneity:
 # QE(df = 261) = 6296.6831, p-val < .0001
@@ -191,7 +188,6 @@ mr_all1_1 <- rma.mv(yi = lnRR,
                     V = lnRR_var, 
                     mods = ~ Diameter_pattern + Treatment_stimulus,
                     random = list(~1 | Study_ID,
-                                  ~1 | Cohort_ID,
                                   ~1 | Shared_control_ID,
                                   ~1 | Obs_ID),
                     test = "t",
@@ -200,6 +196,80 @@ mr_all1_1 <- rma.mv(yi = lnRR,
                     data = dat)
 
 summary(mr_all1_1)
+# Multivariate Meta-Analysis Model (k = 263; method: REML)
+
+#   logLik   Deviance        AIC        BIC       AICc   
+# -256.9127   513.8255   525.8255   547.1896   526.1575   
+
+# Variance Components:
+
+#             estim    sqrt  nlvls  fixed             factor 
+# sigma^2.1  0.0923  0.3038     32     no           Study_ID 
+# sigma^2.2  0.0208  0.1442     88     no  Shared_control_ID 
+# sigma^2.3  0.2428  0.4928    263     no             Obs_ID 
+
+# Test for Residual Heterogeneity:
+# QE(df = 260) = 6295.6998, p-val < .0001
+
+# Test of Moderators (coefficients 2:3):
+# F(df1 = 2, df2 = 260) = 0.7978, p-val = 0.4514
+
+
+# Model Results:
+# 
+#                            estimate      se    tval   df    pval    ci.lb 
+# intrcpt                      0.0420  0.1511  0.2776  260  0.7815  -0.2556 
+# Diameter_pattern             0.0111  0.0106  1.0470  260  0.2961  -0.0098 
+# Treatment_stimuluseyespot    0.0970  0.1237  0.7836  260  0.4340  -0.1467 
+#                             ci.ub    
+# intrcpt                    0.3395    
+# Diameter_pattern           0.0321    
+# Treatment_stimuluseyespot  0.3407 
+
+mr_all1_2 <- rma.mv(yi = lnRR,
+                    V = lnRR_var, 
+                    mods = ~ Treatment_stimulus + Diameter_pattern * Area_background,
+                    random = list(~1 | Study_ID,
+                                  ~1 | Shared_control_ID,
+                                  ~1 | Obs_ID),
+                    test = "t",
+                    method = "REML",
+                    sparse = TRUE,
+                    data = dat)
+
+summary(mr_all1_2)
+# Multivariate Meta-Analysis Model (k = 263; method: REML)
+
+#    logLik   Deviance        AIC        BIC       AICc   
+# -243.8199   487.6397   503.6397   532.0634   504.2180  
+
+# Variance Components:
+
+#             estim    sqrt  nlvls  fixed             factor 
+# sigma^2.1  0.0174  0.1319     32     no           Study_ID 
+# sigma^2.2  0.0112  0.1059     88     no  Shared_control_ID 
+# sigma^2.3  0.2445  0.4944    263     no             Obs_ID 
+
+# Test for Residual Heterogeneity:
+# QE(df = 258) = 6123.9332, p-val < .0001
+
+# Test of Moderators (coefficients 2:5):
+# F(df1 = 4, df2 = 258) = 8.2091, p-val < .0001
+
+# Model Results:
+
+#                                   estimate      se     tval   df    pval 
+# intrcpt                            -0.1830  0.1517  -1.2065  258  0.2287 
+# Diameter_pattern                    0.0506  0.0118   4.2867  258  <.0001 
+# Treatment_stimuluseyespot           0.1784  0.0990   1.8013  258  0.0728 
+# Area_background                    -0.0000  0.0001  -0.5012  258  0.6167 
+# Diameter_pattern:Area_background   -0.0000  0.0000  -0.6007  258  0.5486 
+#                                     ci.lb   ci.ub      
+# intrcpt                           -0.4816  0.1157      
+# Diameter_pattern                   0.0274  0.0739  *** 
+# Treatment_stimuluseyespot         -0.0166  0.3734    . 
+# Area_background                   -0.0002  0.0001      
+# Diameter_pattern:Area_background  -0.0000  0.0000
 
 SizeModel <- orchaRd::mod_results(mr_all1_2, group = "Study_ID",
                                   mod = "Treatment_stimulus",
@@ -210,15 +280,15 @@ orchaRd::orchard_plot(SizeModel, xlab = "lnRR", angle = 45, g = FALSE,
                       theme(legend.direction = "vertical") +
                       scale_fill_manual(values = met.brewer("Klimt")) +
                       scale_colour_manual(values = met.brewer("Klimt"))
-ggsave("Size_all_11Aug.pdf", dpi = 450)
+ggsave("Size_all_18Aug.pdf", dpi = 450)
 
-
-# 3. area of pattern
+#######################
+# 3. area of pattern #
+######################
 mr_all2 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
                    mods = ~ Area_pattern,
                    random = list(~1 | Study_ID,
-                                 ~1 | Cohort_ID, 
                                  ~1 | Shared_control_ID,
                                  ~1 | Obs_ID),
                    test = "t",
@@ -227,11 +297,18 @@ mr_all2 <- rma.mv(yi = lnRR,
                    data = dat)
 
 summary(mr_all2)
+
+# Multivariate Meta-Analysis Model (k = 263; method: REML)
+
+#    logLik   Deviance        AIC        BIC       AICc   
+# -258.2197   516.4394   526.4394   544.2620   526.6747   
+
+# Variance Components:
+
 #             estim    sqrt  nlvls  fixed             factor 
 # sigma^2.1  0.0896  0.2994     32     no           Study_ID 
-# sigma^2.2  0.0000  0.0000    157     no          Cohort_ID 
-# sigma^2.3  0.0210  0.1449     88     no  Shared_control_ID 
-# sigma^2.4  0.2436  0.4935    263     no             Obs_ID 
+# sigma^2.2  0.0210  0.1449     88     no  Shared_control_ID 
+# sigma^2.3  0.2436  0.4935    263     no             Obs_ID 
 
 # Test for Residual Heterogeneity:
 # QE(df = 261) = 6254.4754, p-val < .0001
@@ -261,7 +338,6 @@ mr_all2_1 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
                    mods = ~ Area_pattern + Treatment_stimulus,
                    random = list(~1 | Study_ID,
-                                 ~1 | Cohort_ID, 
                                  ~1 | Shared_control_ID,
                                  ~1 | Obs_ID),
                    test = "t",
@@ -270,9 +346,83 @@ mr_all2_1 <- rma.mv(yi = lnRR,
                    data = dat)
 
 summary(mr_all2_1)
-AreaModel <- orchaRd::mod_results(mr_all2_1, group = "Study_ID",
+# Multivariate Meta-Analysis Model (k = 263; method: REML)
+
+#    logLik   Deviance        AIC        BIC       AICc   
+# -257.2296   514.4592   526.4592   547.8232   526.7912   
+
+# Variance Components:
+
+#             estim    sqrt  nlvls  fixed             factor 
+# sigma^2.1  0.0941  0.3067     32     no           Study_ID 
+# sigma^2.2  0.0215  0.1466     88     no  Shared_control_ID 
+# sigma^2.3  0.2435  0.4934    263     no             Obs_ID 
+
+# Test for Residual Heterogeneity:
+# QE(df = 260) = 6253.9101, p-val < .0001
+
+# Test of Moderators (coefficients 2:3):
+# F(df1 = 2, df2 = 260) = 0.3425, p-val = 0.7103
+
+# Model Results:
+
+#                           estimate      se    tval   df    pval    ci.lb 
+# intrcpt                      0.1302  0.1202  1.0829  260  0.2799  -0.1065 
+# Area_pattern                 0.0002  0.0005  0.4318  260  0.6663  -0.0008 
+# Treatment_stimuluseyespot    0.0803  0.1251  0.6423  260  0.5213  -0.1660 
+#                             ci.ub    
+# intrcpt                    0.3669    
+# Area_pattern               0.0013    
+# Treatment_stimuluseyespot  0.3266    
+
+mr_all2_2 <- rma.mv(yi = lnRR,
+                   V = lnRR_var, 
+                   mods = ~ Treatment_stimulus + Area_pattern * Area_background,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Shared_control_ID,
+                                 ~1 | Obs_ID),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat)
+
+summary(mr_all2_2)
+#    Multivariate Meta-Analysis Model (k = 263; method: REML)
+
+#    logLik   Deviance        AIC        BIC       AICc   
+# -244.9117   489.8233   505.8233   534.2470   506.4017  
+
+# Variance Components:
+
+#             estim    sqrt  nlvls  fixed             factor 
+# sigma^2.1  0.0371  0.1925     32     no           Study_ID 
+# sigma^2.2  0.0151  0.1228     88     no  Shared_control_ID 
+# sigma^2.3  0.2414  0.4913    263     no             Obs_ID 
+
+# Test for Residual Heterogeneity:
+# QE(df = 258) = 6192.3803, p-val < .0001
+
+# Test of Moderators (coefficients 2:5):
+# F(df1 = 4, df2 = 258) = 6.2146, p-val < .0001
+
+# Model Results:
+
+#                                estimate      se     tval   df    pval    ci.lb 
+# intrcpt                          0.0854  0.1201   0.7112  258  0.4776  -0.1510 
+# Area_pattern                     0.0028  0.0008   3.5611  258  0.0004   0.0012 
+# Treatment_stimulus eyespot       0.0948  0.1081   0.8770  258  0.3813  -0.1180 
+# Area_background                 -0.0000  0.0001  -0.5968  258  0.5512  -0.0002 
+# Area_pattern:Area_background    -0.0000  0.0000  -1.1223  258  0.2628  -0.0000 
+#                                 ci.ub      
+# intrcpt                        0.3218      
+# Area_pattern                   0.0043  *** 
+# Treatment_stimulus eyespot     0.3076      
+# Area_background                0.0001      
+# Area_pattern:Area_background   0.0000
+
+AreaModel <- orchaRd::mod_results(mr_all2_2, group = "Study_ID",
                                   mod = "Treatment_stimulus", 
-                                  at = list(Area_pattern = c(10, 40, 90, 150)), by = "Area_pattern")
+                                  at = list(Area_pattern = c(40, 80, 120, 160)), by = "Area_pattern")
 
 orchaRd::orchard_plot(AreaModel, xlab = "lnRR", angle = 45, g = FALSE,
                       condition.lab = "Area difference (mm²)") + 
@@ -280,14 +430,16 @@ orchaRd::orchard_plot(AreaModel, xlab = "lnRR", angle = 45, g = FALSE,
                       scale_fill_manual(values = met.brewer("Redon")) +
                       scale_colour_manual(values = met.brewer("Redon"))
 
-ggsave("Area_all_11Aug.pdf", dpi = 450)
+ggsave("Area_all_18Aug.pdf", dpi = 450)
 
-# 4. number of pattern
+
+########################
+# 4. Number of pattern #
+########################
 mr_all3 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
                    mods = ~ Number_pattern,
                    random = list(~1 | Study_ID,
-                                 ~1 | Cohort_ID, 
                                  ~1 | Shared_control_ID,
                                  ~1 | Obs_ID),
                    test = "t",
@@ -304,9 +456,8 @@ summary(mr_all3)
 
 #             estim    sqrt  nlvls  fixed             factor 
 # sigma^2.1  0.0772  0.2778     32     no           Study_ID 
-# sigma^2.2  0.0000  0.0000    157     no          Cohort_ID 
-# sigma^2.3  0.0195  0.1395     88     no  Shared_control_ID 
-# sigma^2.4  0.2408  0.4907    263     no             Obs_ID 
+# sigma^2.2  0.0195  0.1395     88     no  Shared_control_ID 
+# sigma^2.3  0.2408  0.4907    263     no             Obs_ID 
 
 # Test for Residual Heterogeneity:
 # QE(df = 261) = 6440.4382, p-val < .0001
@@ -335,7 +486,6 @@ mr_all3_1 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
                    mods = ~ Number_pattern + Treatment_stimulus,
                    random = list(~1 | Study_ID,
-                                 ~1 | Cohort_ID, 
                                  ~1 | Shared_control_ID,
                                  ~1 | Obs_ID),
                    test = "t",
@@ -343,26 +493,101 @@ mr_all3_1 <- rma.mv(yi = lnRR,
                    sparse = TRUE,
                    data = dat)
 
-summary(mr_all3_1)
+# Multivariate Meta-Analysis Model (k = 263; method: REML)
+
+#    logLik   Deviance        AIC        BIC       AICc   
+# -256.0600   512.1201   526.1201   551.0448   526.5645   
+
+# Variance Components:
+
+#             estim    sqrt  nlvls  fixed             factor 
+# sigma^2.1  0.0805  0.2838     32     no           Study_ID 
+# sigma^2.2  0.0000  0.0000    157     no          Cohort_ID 
+# sigma^2.3  0.0197  0.1405     88     no  Shared_control_ID 
+# sigma^2.4  0.2405  0.4905    263     no             Obs_ID 
+
+# Test for Residual Heterogeneity:
+# QE(df = 260) = 6363.3087, p-val < .0001
+
+# Test of Moderators (coefficients 2:3):
+# F(df1 = 2, df2 = 260) = 2.4450, p-val = 0.0887
+
+# Model Results:
+
+#                             estimate      se     tval   df    pval    ci.lb 
+# intrcpt                       0.2836  0.1289   2.2001  260  0.0287   0.0298 
+# Number_pattern               -0.0619  0.0295  -2.0949  260  0.0371  -0.1201 
+# Treatment_stimulus eyespot    0.1032  0.1207   0.8552  260  0.3932  -0.1344 
+#                               ci.ub    
+# intrcpt                      0.5375  * 
+# Number_pattern              -0.0037  * 
+# Treatment_stimulus eyespot   0.3408
+
 NumModel <- orchaRd::mod_results(mr_all3_1, group = "Study_ID",
                                   mod = "Treatment_stimulus", 
                                   at = list(Number_pattern = c(1, 2, 3)), by = "Number_pattern")
 
 orchaRd::orchard_plot(NumModel, xlab = "lnRR", angle = 45, g = FALSE,
-                      condition.lab = "Number difference (mm²)") + 
+                      condition.lab = "Number difference ") + 
                       theme(legend.direction = "vertical") +
                       scale_fill_manual(values = met.brewer("Cross", direction = -1)) +
                       scale_colour_manual(values = met.brewer("Cross", direction = -1))
 
 ggsave("Number_all_11Aug.pdf", dpi = 450)
 
+# interaction
+mr_all3_2 <- rma.mv(yi = lnRR,
+                   V = lnRR_var, 
+                   mods = ~ Treatment_stimulus + Number_pattern * Area_pattern,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Shared_control_ID,
+                                 ~1 | Obs_ID),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat)
 
-# 5. type of prey
+summary(mr_all3_2)
+# Multivariate Meta-Analysis Model (k = 263; method: REML)
+
+#    logLik   Deviance        AIC        BIC       AICc   
+# -253.0013   506.0025   522.0025   550.4262   522.5808   
+
+# Variance Components:
+
+#             estim    sqrt  nlvls  fixed             factor 
+# sigma^2.1  0.1042  0.3228     32     no           Study_ID 
+# sigma^2.2  0.0211  0.1451     88     no  Shared_control_ID 
+# sigma^2.3  0.2354  0.4852    263     no             Obs_ID 
+
+# Test for Residual Heterogeneity:
+# QE(df = 258) = 6181.2881, p-val < .0001
+
+# Test of Moderators (coefficients 2:5):
+# F(df1 = 4, df2 = 258) = 1.7700, p-val = 0.1353
+
+# Model Results:
+
+#                              estimate      se     tval   df    pval    ci.lb 
+# intrcpt                         0.2872  0.1429   2.0099  258  0.0455   0.0058 
+# Number_pattern                 -0.0723  0.0310  -2.3307  258  0.0205  -0.1334 
+# Treatment_stimulus eyespot      0.1048  0.1261   0.8310  258  0.4068  -0.1435 
+# Area_pattern                   -0.0015  0.0012  -1.2498  258  0.2125  -0.0038 
+# Number_pattern:Area_pattern     0.0009  0.0006   1.4991  258  0.1351  -0.0003 
+#                                 ci.ub    
+# intrcpt                        0.5685  * 
+# Number_pattern                -0.0112  * 
+# Treatment_stimulus eyespot     0.3531    
+# Area_pattern                   0.0008    
+# Number_pattern:Area_pattern    0.00208
+
+###################
+# 5. type of prey #
+###################
 mr_all4 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
                    mods = ~ Type_prey -1,
                    random = list(~1 | Study_ID,
-                                 ~1 | Cohort_ID, 
                                  ~1 | Shared_control_ID,
                                  ~1 | Obs_ID),
                    test = "t",
@@ -372,15 +597,14 @@ mr_all4 <- rma.mv(yi = lnRR,
 
 summary(mr_all4)
 #     logLik   Deviance        AIC        BIC       AICc   
-# -258.7741   517.5482   529.5482   550.9353   529.8789   
+# -258.7741   517.5482   527.5482   545.3708   527.7835   
 
 # Variance Components:
 
 #             estim    sqrt  nlvls  fixed             factor 
 # sigma^2.1  0.0875  0.2959     32     no           Study_ID 
-# sigma^2.2  0.0000  0.0000    157     no          Cohort_ID 
-# sigma^2.3  0.0228  0.1511     88     no  Shared_control_ID 
-# sigma^2.4  0.2429  0.4929    263     no             Obs_ID 
+# sigma^2.2  0.0228  0.1511     88     no  Shared_control_ID 
+# sigma^2.3  0.2429  0.4929    263     no             Obs_ID 
 
 # Test for Residual Heterogeneity:
 # QE(df = 261) = 6465.5593, p-val < .0001
@@ -407,7 +631,6 @@ mr_all5 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
                    mods = ~ Shape_prey -1,
                    random = list(~1 | Study_ID,
-                                 ~1 | Cohort_ID, 
                                  ~1 | Shared_control_ID,
                                  ~1 | Obs_ID),
                    test = "t",
@@ -417,15 +640,14 @@ mr_all5 <- rma.mv(yi = lnRR,
 
 summary(mr_all5)
 #    logLik   Deviance        AIC        BIC       AICc   
-# -255.5402   511.0804   527.0804   555.5350   527.6564   
+# -255.5402   511.0804   525.0804   549.9782   525.5266  
 
 # Variance Components:
 
 #             estim    sqrt  nlvls  fixed             factor 
 # sigma^2.1  0.1009  0.3177     32     no           Study_ID 
-# sigma^2.2  0.0000  0.0000    157     no          Cohort_ID 
-# sigma^2.3  0.0268  0.1636     88     no  Shared_control_ID 
-# sigma^2.4  0.2386  0.4884    263     no             Obs_ID 
+# sigma^2.2  0.0268  0.1636     88     no  Shared_control_ID 
+# sigma^2.3  0.2386  0.4884    263     no             Obs_ID 
 
 # Test for Residual Heterogeneity:
 # QE(df = 259) = 6128.2304, p-val < .0001
@@ -451,12 +673,13 @@ orchard_plot(mr_all5,
              xlab = "Shape of prey", angle = 45)
 ggsave("Shape_prey_all.pdf", dpi = 450)
 
-# 7. background and pattern characteristics
+#############################################
+# 7. background and pattern characteristics #
+#############################################
 mr_all6 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
                    mods = ~ Area_ratio,
                    random = list(~1 | Study_ID,
-                                 ~1 | Cohort_ID, 
                                  ~1 | Shared_control_ID,
                                  ~1 | Obs_ID),
                    test = "t",
@@ -468,163 +691,26 @@ summary(mr_all6)
 # Multivariate Meta-Analysis Model (k = 263; method: REML)
 
 #    logLik   Deviance        AIC        BIC       AICc   
-# -251.8259   503.6518   515.6518   537.0389   515.9825   
+# -251.8259   502.4560   512.4560   530.2786   512.6913   
 
 # Variance Components:
 
 #             estim    sqrt  nlvls  fixed             factor 
-# sigma^2.1  0.0303  0.1740     32     no           Study_ID 
-# sigma^2.2  0.0000  0.0000    157     no          Cohort_ID 
-# sigma^2.3  0.0216  0.1470     88     no  Shared_control_ID 
-# sigma^2.4  0.2411  0.4911    263     no             Obs_ID 
+# sigma^2.1  0.0324  0.1800     32     no           Study_ID 
+# sigma^2.2  0.0175  0.1323     88     no  Shared_control_ID 
+# sigma^2.3  0.2417  0.4916    263     no             Obs_ID 
 
 # Test for Residual Heterogeneity:
-# QE(df = 261) = 6305.9635, p-val < .0001
+# QE(df = 261) = 6317.1260, p-val < .0001
 
 # Test of Moderators (coefficient 2):
-# F(df1 = 1, df2 = 261) = 16.8195, p-val < .0001
+# F(df1 = 1, df2 = 261) = 18.0485, p-val < .0001
 
 # Model Results:
 
 #             estimate      se     tval   df    pval    ci.lb   ci.ub      
-# intrcpt      -0.0706  0.0861  -0.8203  261  0.4128  -0.2401  0.0989      
-# Area_ratio    2.9897  0.7290   4.1012  261  <.0001   1.5542  4.4251  *** 
-
-# interaction between area/diameter of pattern and background
-mr_all6_1 <- rma.mv(yi = lnRR,
-                   V = lnRR_var, 
-                   mods = ~ Area_pattern * Area_background,
-                   random = list(~1 | Study_ID,
-                                 ~1 | Cohort_ID, 
-                                 ~1 | Shared_control_ID,
-                                 ~1 | Obs_ID),
-                   test = "t",
-                   method = "REML", 
-                   sparse = TRUE,
-                   data = dat)
-
-summary(mr_all6_1)
-
-#    logLik   Deviance        AIC        BIC       AICc   
-# -246.0685   492.1369   508.1369   536.5916   508.7129   
-
-# Variance Components:
-
-#             estim    sqrt  nlvls  fixed             factor 
-# sigma^2.1  0.0343  0.1853     32     no           Study_ID 
-# sigma^2.2  0.0000  0.0000    157     no          Cohort_ID 
-# sigma^2.3  0.0144  0.1201     88     no  Shared_control_ID 
-# sigma^2.4  0.2424  0.4923    263     no             Obs_ID 
-
-# Test for Residual Heterogeneity:
-# QE(df = 259) = 6202.0338, p-val < .0001
-
-# Test of Moderators (coefficients 2:4):
-# F(df1 = 3, df2 = 259) = 8.0952, p-val < .0001
-
-# Model Results:
-
-#                               estimate      se     tval   df    pval    ci.lb 
-# intrcpt                         0.1361  0.0905   1.5037  259  0.1339  -0.0421 
-# Area_pattern                    0.0028  0.0008   3.7314  259  0.0002   0.0013 
-# Area_background                -0.0000  0.0001  -0.4501  259  0.6530  -0.0001 
-# Area_pattern:Area_background   -0.0000  0.0000  -1.2589  259  0.2092  -0.0000 
- #                               ci.ub      
-# intrcpt                       0.3142      
-# Area_pattern                  0.0043  *** 
-# Area_background               0.0001      
-# Area_pattern:Area_background  0.0000      
-
-mr_all6_2 <- rma.mv(yi = lnRR,
-                   V = lnRR_var, 
-                   mods = ~ Diameter_pattern* Area_background,
-                   random = list(~1 | Study_ID,
-                                 ~1 | Cohort_ID, 
-                                 ~1 | Shared_control_ID,
-                                 ~1 | Obs_ID),
-                   test = "t",
-                   method = "REML", 
-                   sparse = TRUE,
-                   data = dat)
-
-summary(mr_all6_2)
-# Multivariate Meta-Analysis Model (k = 263; method: REML)
-
-#    logLik   Deviance        AIC        BIC       AICc   
-# -245.9680   491.9359   507.9359   536.3906   508.5119   
-
-# Variance Components:
-
-#             estim    sqrt  nlvls  fixed             factor 
-# sigma^2.1  0.0159  0.1263     32     no           Study_ID 
-# sigma^2.2  0.0000  0.0000    157     no          Cohort_ID 
-# sigma^2.3  0.0084  0.0914     88     no  Shared_control_ID 
-# sigma^2.4  0.2496  0.4996    263     no             Obs_ID 
-
-# Test for Residual Heterogeneity:
-# QE(df = 259) = 6125.8360, p-val < .0001
-
-# Test of Moderators (coefficients 2:4):
-# F(df1 = 3, df2 = 259) = 10.2341, p-val < .0001
-
-# Model Results:
-
-#                                  estimate      se     tval   df    pval 
-# intrcpt                            -0.0234  0.1205  -0.1946  259  0.8459 
-# Diameter_pattern                    0.0464  0.0113   4.0995  259  <.0001 
-# Area_background                    -0.0001  0.0001  -0.8094  259  0.4190 
-# Diameter_pattern:Area_background   -0.0000  0.0000  -0.2418  259  0.8091 
-#                                     ci.lb   ci.ub      
-# intrcpt                           -0.2607  0.2138      
-# Diameter_pattern                   0.0241  0.0687  *** 
-# Area_background                   -0.0002  0.0001      
-# Diameter_pattern:Area_background  -0.0000  0.0000    
-
-mr_all6_3 <- rma.mv(yi = lnRR,
-                   V = lnRR_var, 
-                   mods = ~ Number_pattern* Area_background,
-                   random = list(~1 | Study_ID,
-                                 ~1 | Cohort_ID, 
-                                 ~1 | Shared_control_ID,
-                                 ~1 | Obs_ID),
-                   test = "t",
-                   method = "REML", 
-                   sparse = TRUE,
-                   data = dat)
-
-summary(mr_all6_3)
-# Multivariate Meta-Analysis Model (k = 263; method: REML)
-
-#   logLik   Deviance        AIC        BIC       AICc   
-# -250.7169   501.4338   517.4338   545.8885   518.0098   
-
-# Variance Components:
-
-#             estim    sqrt  nlvls  fixed             factor 
-# sigma^2.1  0.0876  0.2959     32     no           Study_ID 
-# sigma^2.2  0.0000  0.0000    157     no          Cohort_ID 
-# sigma^2.3  0.0170  0.1304     88     no  Shared_control_ID 
-# sigma^2.4  0.2311  0.4807    263     no             Obs_ID 
-
-# Test for Residual Heterogeneity:
-# QE(df = 259) = 6166.0386, p-val < .0001
-
-# Test of Moderators (coefficients 2:4):
-# F(df1 = 3, df2 = 259) = 4.6190, p-val = 0.0036
-
-# Model Results:
-
-#                                 estimate      se     tval   df    pval    ci.lb 
-# intrcpt                           0.5139  0.1145   4.4884  259  <.0001   0.2884 
-# Number_pattern                   -0.0959  0.0380  -2.5192  259  0.0124  -0.1708 
-# Area_background                  -0.0002  0.0001  -1.6720  259  0.0957  -0.0004 
-# Number_pattern:Area_background    0.0001  0.0001   1.2739  259  0.2039  -0.0000 
-#                                   ci.ub      
-# intrcpt                          0.7393  *** 
-# Number_pattern                  -0.0209    * 
-# Area_background                  0.0000    . 
-# Number_pattern:Area_background   0.0002      
-
+# intrcpt      -0.0689  0.0845  -0.8157  261  0.4154  -0.2353  0.0975      
+# Area_ratio    3.0507  0.7181   4.2483  261  <.0001   1.6367  4.4648  *** 
 
 # CHECK
 ####################
@@ -632,16 +718,13 @@ summary(mr_all6_3)
 ####################
 # traditional funnel plot
 funnel(ma_all)
-regtest(ma_all)
 
-install.packages("meta")
 df_bias <- dat %>% mutate(sqrt_inv_e_n = sqrt((Cn + Tn)/(Cn * Tn))) 
 
 bias_model <- rma.mv(yi = lnRR,
                      V = lnRR_var, 
                      mods = ~1 + scale(sqrt_inv_e_n) + scale(Year),
                      random = list(~1 | Study_ID,
-                                   ~1 | Cohort_ID,
                                    ~1 | Shared_control_ID,
                                    ~1 | Obs_ID),
                      test = "t",
@@ -653,15 +736,14 @@ summary(bias_model)
 # Multivariate Meta-Analysis Model (k = 263; method: REML)
 
 #    logLik   Deviance        AIC        BIC       AICc   
-# -257.6678   515.3355   529.3355   554.2603   529.7800   
+# -257.6678   515.3355   527.3355   548.6996   527.6675  
 
 # Variance Components:
 
 #             estim    sqrt  nlvls  fixed             factor 
 # sigma^2.1  0.0741  0.2722     32     no           Study_ID 
-# sigma^2.2  0.0000  0.0000    157     no          Cohort_ID 
-# sigma^2.3  0.0274  0.1654     88     no  Shared_control_ID 
-# sigma^2.4  0.2436  0.4936    263     no             Obs_ID 
+# sigma^2.2  0.0274  0.1654     88     no  Shared_control_ID 
+# sigma^2.3  0.2436  0.4936    263     no             Obs_ID 
 
 # Test for Residual Heterogeneity:
 # QE(df = 260) = 6260.2656, p-val < .0001
