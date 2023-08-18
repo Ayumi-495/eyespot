@@ -82,7 +82,7 @@ ggsave("overall_cat_all.pdf", dpi = 450)
 ##############################
 mr_all <- rma.mv(yi = lnRR,
                   V = lnRR_var, 
-                  mods = ~ Treatment_stimulus,
+                  mods = ~ Treatment_stimulus -1,
                   random = list(~1 | Study_ID,
                                 ~1 | Shared_control_ID,
                                 ~1 | Obs_ID),
