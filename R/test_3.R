@@ -1,6 +1,7 @@
 # read libraries
 pacman::p_load(here, MetBrewer, orchaRd)
 source("R/function_2.R")
+source(("R/bubble_plot.R"))
 
 # get data
 dat_all <-  read_csv(here("data/all_15082023.csv"))
@@ -19,7 +20,6 @@ dat$Obs_ID <- 1:nrow(dat)
 
 hist(dat$lnRR) 
 hist(dat$lnRR_var)
-
 
 # meta-analysis 
 # I exclude cohort_ID because sigma^2.2 = 0 and I2 = 0
@@ -179,7 +179,7 @@ bubble_plot(mr_all1,
             mod = "Diameter_pattern",
             group = "Study_ID",
             k = TRUE, g = TRUE,
-            xlab = "Diameter (mm)")
+            xlab = "Pattern diameter (mm)")
 # plotしたいんだけどなぁ
 # FIXME - Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
 # replacement has 0 rows, data has 261
@@ -329,7 +329,7 @@ bubble_plot(mr_all2,
             mod = "Area_pattern",
             group = "Study_ID",
             k = TRUE, g = TRUE,
-            xlab = "Area (mm2)")
+            xlab = "Pattern area (mm2)")
 # plotしたいんだけどなぁ
 # FIXME - Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
 # replacement has 0 rows, data has 263
@@ -478,8 +478,8 @@ r2_ml(mr_all3)
 bubble_plot(mr_all3,
             mod = "Number_pattern",
             group = "Study_ID",
-            xlab = "Number")
-# Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
+            xlab = "Number of patterns")
+# FIXME Error in `$<-.data.frame`(`*tmp*`, "condition", value = integer(0)) : 
 # replacement has 0 rows, data has 263
 
 mr_all3_1 <- rma.mv(yi = lnRR,
@@ -538,7 +538,7 @@ ggsave("Number_all_11Aug.pdf", dpi = 450)
 # interaction
 mr_all3_2 <- rma.mv(yi = lnRR,
                    V = lnRR_var, 
-                   mods = ~ Treatment_stimulus + Number_pattern * Area_pattern,
+                   mods = ~ Treatment_stimulus + Number_pattern  * Diameter_pattern,
                    random = list(~1 | Study_ID,
                                  ~1 | Shared_control_ID,
                                  ~1 | Obs_ID),
@@ -757,3 +757,20 @@ summary(bias_model)
 # intrcpt                0.2026  0.0703   2.8820  260  0.0043   0.0642  0.3411 ** 
 # scale(sqrt_inv_e_n)   -0.0256  0.0643  -0.3976  260  0.6913  -0.1521  0.1010 
 # scale(Year)           -0.0333  0.0676  -0.4923  260  0.6229  -0.1663  0.0998 
+
+##########
+# 8. all #
+##########
+mr_all8 <- rma.mv(yi = lnRR,
+                   V = lnRR_var, 
+                   mods = ~ Treatment_stimulus + Diameter_pattern + 
+                   Area_pattern + Number_pattern + Type_prey,
+                   random = list(~1 | Study_ID,
+                                 ~1 | Shared_control_ID,
+                                 ~1 | Obs_ID),
+                   test = "t",
+                   method = "REML", 
+                   sparse = TRUE,
+                   data = dat)
+
+summary(mr_all8)

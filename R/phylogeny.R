@@ -1,5 +1,5 @@
 # read libraries
-pacman::p_load(ape, here, pjangorn, orchaRd)
+pacman::p_load(ape, here, metafor, tidyverse)
 source("R/function_2.R")
 
 # get data
@@ -7,7 +7,6 @@ dat_pred <- read_csv(here("data/predator_22072023.csv"))
 dim(dat_pred)
 
 # calculate lnRR and lnRR_var
-
 dat <- effect_lnRR(dat_pred)
 dat$Obs_ID <- 1:nrow(dat)
 
