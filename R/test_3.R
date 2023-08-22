@@ -1,8 +1,8 @@
 # read libraries
 if (!require(MetBrewer)) {
   install.packages("MetBrewer")
-}
-pacman::p_load(here, MetBrewer, orchaRd)
+} # 
+pacman::p_load(here, MetBrewer, orchaRd) #delete MetBrewer parts in code, but I will use this package
 source("R/function_2.R")
 
 # get data
@@ -1095,3 +1095,47 @@ bubble_plot(year_model,
             mod = "Year",
             group = "Study_ID",
             xlab = "Year")
+
+###########
+# dataset #
+###########
+mr_dataset <- rma.mv(yi = lnRR,
+                      V = lnRR_var,
+                      mods = ~ Dataset,
+                      random = list(~1 | Study_ID,
+                                    ~1 | Shared_control_ID,
+                                    ~1 | Obs_ID),
+                      test = "t",
+                      method = "REML",
+                      sparse = TRUE,
+                      data = dat)
+summary(mr_dataset)
+# Multivariate Meta-Analysis Model (k = 263; method: REML)
+
+#    logLik   Deviance        AIC        BIC       AICc   
+# -255.4718   510.9436   520.9436   538.7662   521.1789   
+
+# Variance Components:
+
+#             estim    sqrt  nlvls  fixed             factor 
+# sigma^2.1  0.0901  0.3002     32     no           Study_ID 
+# sigma^2.2  0.0169  0.1300     88     no  Shared_control_ID 
+# sigma^2.3  0.2362  0.4860    263     no             Obs_ID 
+
+# Test for Residual Heterogeneity:
+# QE(df = 261) = 6189.5292, p-val < .0001
+
+# Test of Moderators (coefficient 2):
+# F(df1 = 1, df2 = 261) = 0.7658, p-val = 0.3823
+
+# Model Results:
+
+#              estimate      se    tval   df    pval    ci.lb   ci.ub    
+# intrcpt        0.1690  0.1009  1.6744  261  0.0952  -0.0297  0.3678  . 
+# Dataset prey    0.1213  0.1387  0.8751  261  0.3823  -0.1517  0.3944
+
+orchard_plot(mr_dataset,
+              mod = "Dataset",
+              group = "Study_ID",
+              xlab = "Dataset",
+              angle = 45)
