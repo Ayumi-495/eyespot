@@ -299,3 +299,5 @@ all.m.phy <- data.frame(all.m.phy, byrow = TRUE)
 col_names <- c("sigma^2.1_Study_ID", "sigma^2.2_Cohort_ID", "sigma^2.3_SharedControl_ID", "sigma^2.4_Obs_ID", "sigma^2.5_BirdSpecies", "sigma^2.6_Phylogeny")
 colnames(all.m.phy) <- col_names
 print(all.m.phy)
+
+

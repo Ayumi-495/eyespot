@@ -1,5 +1,7 @@
+# test whether phylogeny should be included in our analyses
+
 # read libraries
-pacman::p_load(ape, here, tidyverse, orchaRd)
+pacman::p_load(ape, here, tidyverse, miWQS, miceadds)
 source("R/function_2.R")
 
 # data and phylogeny
@@ -38,7 +40,7 @@ vcv(trees[[1]], cor = T) # example of vcv matrix
 dat_pred <- effect_lnRR(dat_predator)
 dat_pred$Obs_ID <- 1:nrow(dat_pred)
 
-# test whether phylogeny should be included in our analyses
+# check heterogeneity of phylogeny
 model_phy <- NULL
 phylo_cor <- NULL
 class(model_phy) <- "list"
@@ -77,27 +79,27 @@ summary(model_phy[[1]]) # example of summary
 # Multivariate Meta-Analysis Model (k = 117; method: REML)
 
 #    logLik   Deviance        AIC        BIC       AICc   
-# -155.1741   310.3482   324.3482   343.6233   325.3852   
+# -154.6149   309.2298   323.2298   342.5049   324.2668    
 
 # Variance Components:
 
 #             estim    sqrt  nlvls  fixed             factor    R 
 # sigma^2.1  0.0000  0.0001     18     no           Study_ID   no 
-# sigma^2.2  0.0830  0.2882     29     no  Shared_control_ID   no 
-# sigma^2.3  0.1209  0.3477     33     no          Cohort_ID   no 
-# sigma^2.4  0.5344  0.7310    117     no             Obs_ID   no 
+# sigma^2.2  0.0923  0.3037     29     no  Shared_control_ID   no 
+# sigma^2.3  0.1009  0.3177     33     no          Cohort_ID   no 
+# sigma^2.4  0.5323  0.7296    117     no             Obs_ID   no 
 # sigma^2.5  0.0000  0.0000      7     no       Bird_species   no 
 # sigma^2.6  0.0000  0.0000      7     no          Phylogeny  yes 
 
 # Test for Heterogeneity:
-# Q(df = 116) = 5282.9638, p-val < .0001
+# Q(df = 116) = 5316.7677, p-val < .0001
 
 # Model Results:
 
 # estimate      se    tval   df    pval    ci.lb   ci.ub    
-#   0.0747  0.1208  0.6187  116  0.5373  -0.1645  0.3139     
+#   0.1394  0.1192  1.1690  116  0.2448  -0.0968  0.3755       
 
-# extract sigma^2　- I am not sure whether this is correct ＊ 間違っている and いらないかも
+# ASK - extract sigma^2　- I am not sure whether this is correct ＊ 間違っている and いらないかも
 sigma2_mod <- do.call(rbind, lapply(model_phy, function(x) x$sigma2))
 sigma2_mod <- data.frame(sigma2_mod)
 colnames(sigma2_mod) <- c("sigma^2.1_Study_ID", "sigma^2.2_SharedControl_ID", "sigma^2.3_Cohort_ID",
@@ -106,17 +108,46 @@ colnames(sigma2_mod) <- c("sigma^2.1_Study_ID", "sigma^2.2_SharedControl_ID", "s
 print(sigma2_mod)
 
 colMeans(sigma2_mod)
-#        sigma^2.1_Study_ID sigma^2.2_SharedControl_ID 
-#               3.228642e-09               8.304142e-02 
+#         sigma^2.1_Study_ID sigma^2.2_SharedControl_ID 
+#               6.604261e-10               2.888791e-10  
 #        sigma^2.3_Cohort_ID           sigma^2.4_Obs_ID 
-#               1.209012e-01               5.343782e-01 
+#               1.009451e-01               5.323456e-01 
 #      sigma^2.5_BirdSpecies        sigma^2.6_Phylogeny 
-#               6.621839e-12               7.314715e-12 
+#               6.604261e-10               2.888791e-10
 
 i2_ml(model_phy[[1]]) # example of i2_ml
-#            I2_Total          I2_Study_ID I2_Shared_control_ID 
-#         9.960611e+01         4.278779e-07         1.120302e+01 
+#             I2_Total          I2_Study_ID I2_Shared_control_ID 
+#         9.959916e+01         4.743726e-07         1.266457e+01 
 #         I2_Cohort_ID            I2_Obs_ID      I2_Bird_species 
-#         1.631067e+01         7.209242e+01         8.510998e-10 
+#         1.385718e+01         7.307740e+01         8.611110e-08 
 #         I2_Phylogeny 
-#        1.024018e-09 
+#         4.416624e-08
+
+
+# BUG
+# When I want to use the pool.mi(), I need SD values of each model.  
+
+# Extract the mean and standard deviation parameters from the rma.mv results
+# to.pool <- array(NA, dim = c(2, 2, 50))
+# for (i in 1:50) {
+#  to.pool[1, 1, i] <- model_phy[[i]]$b
+#  to.pool[1, 2, i] <- sqrt(model_phy[[i]]$V) - Do I need to extract SD here?
+# }
+
+# Then, I tried to use pool() function (mice package) and pool_mi() function (miceadds package)
+# but I got an error message in pool_mi().
+
+# use pool function
+summary(pool(model_phy))
+#      term  estimate std.error statistic      df   p.value
+# 1 overall 0.1393776 0.1192319  1.168962 114.039 0.2448566
+
+# use pool_mi function
+# extract estimates and standard errors from each model
+estimates <- lapply(model_phy, function(x) x$b)
+se <- lapply(model_phy, function(x) x$se)
+
+
+# use pool_mi function
+results <- pool_mi(qhat = estimates, se = se)
+# Error in u[ii, , ] <- u0[[ii]] : replacement has length zero
