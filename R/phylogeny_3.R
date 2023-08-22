@@ -28,20 +28,20 @@ dat_pred$Obs_ID <- 1:nrow(dat_pred)
 V <- vcalc(lnRR_var, cluster = Cohort_ID, subgroup = Obs_ID, data = dat_pred)
 
 # create function to run meta-analysis for 50 trees
-model_run <- function(cor_tree = vcv_tree){
+phy_model <- function(cor_tree = vcv_tree){
             model <- rma.mv(yi = lnRR,
-                        V = V,
-                        random = list(~1 | Study_ID,
-                                      ~1 | Shared_control_ID,
-                                      ~1 | Cohort_ID,
-                                      ~1 | Obs_ID,
-                                      ~1 | Bird_species,
-                                      ~1 | Phylogeny),
-                          R = list(Phylogeny = cor_tree), 
-                          test = "t",
-                          method = "REML",
-                          sparse = TRUE,
-                          data = dat_pred)
+                            V = V,
+                            random = list(~1 | Study_ID,
+                                          ~1 | Shared_control_ID,
+                                          ~1 | Cohort_ID,
+                                          ~1 | Obs_ID,
+                                          ~1 | Bird_species,
+                                          ~1 | Phylogeny),
+                            R = list(Phylogeny = cor_tree),
+                            test = "t",
+                            method = "REML",
+                            sparse = TRUE,
+                            data = dat_pred)
   model
 }
 
@@ -49,11 +49,11 @@ tree_50 <- trees[1:50]
 vcv_tree_50 <- map(tree_50, ~vcv(.x, corr = TRUE))
 
 # running 50 meta-analyses with 50 different trees
-ma_50 <- mclapply(vcv_tree_50, model_run, mc.cores = 8) # detectCores() = 8
+ma_50 <- mclapply(vcv_tree_50, phy_model, mc.cores = 8) # detectCores() = 8
 
-# save and load the results
-saveRDS(ma_50, here("data", "ma_50.RDS")) 
-ma_50 <- readRDS(here("data", "ma_50.RDS"))
+# It is not necessary for me - save and load the results
+# saveRDS(ma_50, here("data", "ma_50.RDS")) 
+# ma_50 <- readRDS(here("data", "ma_50.RDS"))
 
 # combining the results
 est_50 <- map_dbl(ma_50, ~ .x$b[[1]])
@@ -73,7 +73,7 @@ pool.mi(my_array)
 # 1    2.00061e-06 -0.09431294 0.3730681 0.2424192
 
 
-# extract sigma^2 for averaging variance component　- I am not sure whether this is correct *間違っている? いらない？
+# extract sigma^2 for averaging variance components?　- I am not sure whether this is correct *間違っている? いらない？
 sigma2_mod <- do.call(rbind, lapply(ma_50, function(x) x$sigma2))
 sigma2_mod <- data.frame(sigma2_mod)
 
@@ -86,5 +86,5 @@ colMeans(sigma2_mod)
 #              3.496353e-09               9.225743e-02 
 #       sigma^2.3_Cohort_ID           sigma^2.4_Obs_ID 
 #              1.009451e-01               5.323456e-01 
-#      sigma^2.5_BirdSpecies        sigma^2.6_Phylogeny 
-#               6.604261e-10               2.888791e-10
+#      sigma^2.5_BirdSpecies       sigma^2.6_Phylogeny 
+#              6.604261e-10               2.888791e-10
