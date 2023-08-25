@@ -11,7 +11,7 @@ is.ultrametric(trees[[1]])
 # [1] TRUE
 
 # example of variance-covariance matrix
-vcv(trees[[1]], cor = T)
+vcv(trees[[1]], corr = T)
 #                     Gallus_gallus Cyanocitta_cristata Sturnus_vulgaris Ficedula_hypoleuca Emberiza_sulphurata Parus_major Parus_caeruleus
 # Gallus_gallus                   1           0.0000000        0.0000000          0.0000000           0.0000000   0.0000000       0.0000000
 # Cyanocitta_cristata             0           1.0000000        0.4437522          0.4437522           0.4437522   0.4437522       0.4437522
@@ -51,6 +51,8 @@ vcv_tree_50 <- map(tree_50, ~vcv(.x, corr = TRUE))
 # running 50 meta-analyses with 50 different trees
 ma_50 <- mclapply(vcv_tree_50, phy_model, mc.cores = 8) # detectCores() = 8
 
+# Shinichi - always best to save RDS files for analysis 
+# which takes more than a min or so (will explain why)
 # It is not necessary for me - save and load the results
 # saveRDS(ma_50, here("data", "ma_50.RDS")) 
 # ma_50 <- readRDS(here("data", "ma_50.RDS"))
@@ -75,12 +77,13 @@ pool.mi(my_array)
 
 # extract sigma^2 for averaging variance components?　- I am not sure whether this is correct *間違っている? いらない？
 sigma2_mod <- do.call(rbind, lapply(ma_50, function(x) x$sigma2))
+sigma2_mod <- data.frame(sigma2_mod)
 
 colnames(sigma2_mod) <- c("sigma^2.1_Study_ID", "sigma^2.2_SharedControl_ID", 
                           "sigma^2.3_Cohort_ID", "sigma^2.4_Obs_ID", 
                           "sigma^2.5_BirdSpecies", "sigma^2.6_Phylogeny")
-
-colMeans(sigma2_mod)
+# Shinichi - easier to undersatnd if you round
+round(colMeans(sigma2_mod), 2)
 #        sigma^2.1_Study_ID sigma^2.2_SharedControl_ID 
 #              3.496353e-09               9.225743e-02 
 #       sigma^2.3_Cohort_ID           sigma^2.4_Obs_ID 

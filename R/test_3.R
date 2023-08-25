@@ -32,6 +32,9 @@ hist(dat$lnRR_var)
 ##################
 # I exclude cohort_ID because sigma^2.2 = 0 and I2 = 0
 
+# TODO
+
+
 ma_all <- rma.mv(yi = lnRR,
                   V = lnRR_var, 
                   random = list(~1 | Study_ID,
