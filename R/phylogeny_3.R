@@ -75,7 +75,6 @@ pool.mi(my_array)
 
 # extract sigma^2 for averaging variance components?　- I am not sure whether this is correct *間違っている? いらない？
 sigma2_mod <- do.call(rbind, lapply(ma_50, function(x) x$sigma2))
-sigma2_mod <- data.frame(sigma2_mod)
 
 colnames(sigma2_mod) <- c("sigma^2.1_Study_ID", "sigma^2.2_SharedControl_ID", 
                           "sigma^2.3_Cohort_ID", "sigma^2.4_Obs_ID", 
