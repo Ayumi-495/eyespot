@@ -2,7 +2,7 @@
 if (!require(MetBrewer)) {
   install.packages("MetBrewer")
 } # 
-pacman::p_load(here, MetBrewer, orchaRd) #delete MetBrewer parts in code, but I will use this package
+pacman::p_load(here, MetBrewer, orchaRd, metafor) #delete MetBrewer parts in code, but I will use this package
 source("R/function_2.R")
 
 # get data
@@ -32,11 +32,16 @@ hist(dat$lnRR_var)
 ##################
 # I exclude cohort_ID because sigma^2.2 = 0 and I2 = 0
 
-# TODO
+# use vcalc to calculate variance-covariance matrix
+VCV <- vcalc(vi = lnRR_var, 
+             cluster = Cohort_ID,
+             obs = Obs_ID,
+             rho = 0.5,
+             data = dat)
 
-
+# now results are a bit different 
 ma_all <- rma.mv(yi = lnRR,
-                  V = lnRR_var, 
+                  V = VCV, 
                   random = list(~1 | Study_ID,
                                 ~1 | Shared_control_ID,
                                 ~1 | Obs_ID),
@@ -82,6 +87,8 @@ caterpillars(ma_all, group = "Study_ID", xlab = "log response ratio (lnRR)")
 # 0. eyespot or conspicuous? #
 ##############################
 ## simple model remove intercept
+# TODO use VCV
+
 mr_eyespot <- rma.mv(yi = lnRR,
                     V = lnRR_var, 
                     mods = ~ Treatment_stimulus -1,
@@ -1086,9 +1093,9 @@ summary(year_model)
 # QE(df = 261) = 6411.1908, p-val < .0001
 
 # Test of Moderators (coefficient 2):
-F(df1 = 1, df2 = 261) = 0.0529, p-val = 0.8182
+#F(df1 = 1, df2 = 261) = 0.0529, p-val = 0.8182
 
-Model Results:
+#Model Results:
 
 #          estimate       se     tval   df    pval     ci.lb    ci.ub    
 # intrcpt    3.5299  14.3444   0.2461  261  0.8058  -24.7156  31.7753    
