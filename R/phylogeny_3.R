@@ -54,8 +54,8 @@ ma_50 <- mclapply(vcv_tree_50, phy_model, mc.cores = 8) # detectCores() = 8
 # Shinichi - always best to save RDS files for analysis 
 # which takes more than a min or so (will explain why)
 # It is not necessary for me - save and load the results
-# saveRDS(ma_50, here("data", "ma_50.RDS")) 
-# ma_50 <- readRDS(here("data", "ma_50.RDS"))
+saveRDS(ma_50, here("data", "ma_50.RDS")) 
+ma_50 <- readRDS(here("data", "ma_50.RDS"))
 
 # combining the results
 est_50 <- map_dbl(ma_50, ~ .x$b[[1]])

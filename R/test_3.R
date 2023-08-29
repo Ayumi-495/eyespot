@@ -1149,3 +1149,21 @@ orchard_plot(mr_dataset,
               group = "Study_ID",
               xlab = "Dataset",
               angle = 45)
+
+
+mr_background <- rma.mv(yi = lnRR,
+                        V = lnRR_var, 
+                        mods = ~ Log_background,
+                        random = list(~1 | Study_ID,
+                                      ~1 | Obs_ID),
+                        test = "t",
+                        method = "REML",
+                        sparse = TRUE,
+                        data = dat)
+
+summary(mr_background)
+
+bubble_plot(mr_background,
+            mod = "Log_background",
+            group = "Study_ID",
+            xlab = "Log-transformed backgroud")
