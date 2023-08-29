@@ -58,12 +58,13 @@ pacman::p_load(ape,
 
 ```{r}
 dat_predator <- read.csv(here("data/predator_22072023.csv"), header = T, fileEncoding = "CP932")
+
 dat_all <-  read.csv(here("data/all_15082023.csv"), header = T, fileEncoding = "CP932")
 
 ```
 
 ### Calculate effect size and its variance
-
+Create function for calculating effect size and its variance
 ```{r}
 # function for calculating effect size (lnRR)
 effect_lnRR <- function(dt) {
@@ -261,8 +262,10 @@ effect_lnRR <- function(dt) {
 
   return(dt1)
 }
+```
 
-# calculate lnRR and lnRR variance
+Calculate lnRR and lnRR variance
+```{r}
 dat_pred <- effect_lnRR(dat_predator)
 dat <- effect_lnRR(dat_all)
 
@@ -291,7 +294,11 @@ datatable(dat, caption = "Dataset for meta-analysis",
           options = list(pageLength = 10, scrollX = TRUE))
 ```
 ### Check phylogenetic relatedness
-If phylogeny do not explain heterogeniety much, we will not need to consider it.
+If phylogeny do not explain heterogeniety much, we will not need to consider it and the two datasets can be merged.
+
+We used meta-analytical models to calculate total I2 (a measure of heterogeneity not caused by sampling error; Higgins. et al., 2003) and the partial I2 explained by each random factor.
+
+Based on this, we need not to consider phylogenetic relatedness from our meta-regressions as this random factor did not explain much of the heterogeneity between effect sizes (partial I2 < 0.001%), then we can combine two datasets (predator and prey) for meta-analysis.
 
 ```{r}
 #| eval: false
@@ -364,21 +371,14 @@ Only 50 trees are used as in [Nakagawa & Villemereuil (2019)](https://doi.org/10
 
 :::
 
-###
-```{r}
-#| echo: false
-datatable(dat, caption = "Dataset for meta-analysis", 
-          options = list(pageLength = 10, scrollX = TRUE))
-```
-:::
-
-
 ## Meta-analysis
 
-::: callout-note
-## Model has all random effects - which random effects remain in our models?
+We used meta-analytical models to calculate total I2 (a measure of heterogeneity not caused by sampling error; Higgins. et al., 2003) and the partial I2 explained by each random factor.
 
-We do not need to consider _Shared control ID_ and _Cohort ID_
+::: callout-note
+## Which random effects remove in our models?
+
+We can remove _Shared control ID_ and _Cohort ID_
 :::
 
 ```{r}
@@ -398,13 +398,12 @@ summary(ma_all)
 i2 <- round(i2_ml(ma_all), 4)
 ```
 
+Heterogeneity is high (I2 = 0.95) and significant (Q = 100.5, df = 9, p < 0.001)
 ```{r}
 #| echo: false
 t_i2 <- t(i2)
 knitr::kable(t_i2)
 ```
-
-
 
 ```{r}
 
@@ -648,6 +647,7 @@ funnel(ma_all)
 ### Egger's test
 
 ```{r}
+
 df_bias <- dat %>% mutate(sqrt_inv_e_n = sqrt((Cn + Tn)/(Cn * Tn)))
 
 bias_model <- rma.mv(yi = lnRR,
@@ -693,10 +693,33 @@ bubble_plot(year_model,
 
 :::
 
-## Supplimentrary 
+## Additional analyses
 
 ## Meta-regressions
 :::{.panel-tabset}
+
+### Dataset
+We compared effect size between two datasets (predator and prey) to see whether there is any difference in effect size between two datasets.
+
+```{r}
+
+mr_dataset <- rma.mv(yi = lnRR,
+                      V = VCV,
+                      mods = ~ Dataset,
+                      random = list(~1 | Study_ID,
+                                    ~1 | Obs_ID),
+                      test = "t",
+                      method = "REML",
+                      sparse = TRUE,
+                      data = dat)
+summary(mr_dataset)
+
+orchard_plot(mr_dataset,
+            mod = "Dataset",
+            group = "Study_ID",
+            xlab = "Dataset") 
+
+```
 
 ### Background area (mm²)
 ```{r}
@@ -721,7 +744,7 @@ bubble_plot(mr_background,
 ```
 :::
 
-## R session info
+## R session infomation
 ```{r}
 
 sessionInfo() %>% pander::pander()
