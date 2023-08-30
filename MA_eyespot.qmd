@@ -45,7 +45,6 @@ pacman::p_load(ape,
                metafor,
                miWQS,
                orchaRd,
-               pnder, 
                parallel,
                viridis)
 ```
@@ -54,14 +53,31 @@ pacman::p_load(ape,
 
 ::: {.panel-tabset}
 
-### Read datasets
+### Read datasets and phylogeny
+First, we used a predator dataset to check whether we need to consider phylogeney. If so, we will use predator and prey datasets for following meta-analysis.
 
 ```{r}
+#| label: predator dataset
+#| tbl-cap: "Predator dataset"
+
 dat_predator <- read.csv(here("data/predator_22072023.csv"), header = T, fileEncoding = "CP932")
 
 dat_all <-  read.csv(here("data/all_15082023.csv"), header = T, fileEncoding = "CP932")
 
+
+datatable(dat_predator, caption = "Predator datasets", options = list(pageLength = 10, scrollX = TRUE))
 ```
+```{r}
+
+#| label: tree
+#| fig-cap: "Phylogenetic tree of bird species"
+#| fig-cap-location: bottom
+trees <- read.nexus(here("data/bird_phy.nex"))
+plot(trees[[1]],type = "fan")
+
+```
+
+
 
 ### Calculate effect size and its variance
 Create function for calculating effect size and its variance
@@ -264,7 +280,7 @@ effect_lnRR <- function(dt) {
 }
 ```
 
-Calculate lnRR and lnRR variance
+### Calculate lnRR and lnRR variance
 ```{r}
 dat_pred <- effect_lnRR(dat_predator)
 dat <- effect_lnRR(dat_all)
@@ -272,6 +288,12 @@ dat <- effect_lnRR(dat_all)
 # add obseravation id
 dat_pred$Obs_ID <- 1:nrow(dat_pred)
 dat$Obs_ID <- 1:nrow(dat)
+
+# the data of diamete, area, and background are log-transformed because it is skew data
+dat$Log_diameter <- log(dat$Diameter_pattern)
+dat$Log_area <- log(dat$Area_pattern)
+dat$Log_background <- log(dat$Area_background)
+
 
 # use vcalc to calculate variance-covariance matrix
 VCV_pred <- vcalc(vi = lnRR_var, 
@@ -287,12 +309,17 @@ VCV <- vcalc(vi = lnRR_var,
 
 ```
 
+
 ### Final dataset for meta-analysis
 
 ```{r}
+#| label: dataset
+#| tbl-cap: "Our datasets included predator and prey datasets"
+
 datatable(dat, caption = "Dataset for meta-analysis", 
           options = list(pageLength = 10, scrollX = TRUE))
 ```
+
 ### Check phylogenetic relatedness
 If phylogeny do not explain heterogeniety much, we will not need to consider it and the two datasets can be merged.
 
@@ -302,7 +329,7 @@ Based on this, we need not to consider phylogenetic relatedness from our meta-re
 
 ```{r}
 #| eval: false
-trees <- read.nexus(here("data/bird_phy.nex"))
+
 phy_model <- function(cor_tree = vcv_tree){
             model <- rma.mv(yi = lnRR,
                             V = VCV_pred,
@@ -370,6 +397,7 @@ knitr::kable(sigma2_mod, caption = "Average variance components")
 Only 50 trees are used as in [Nakagawa & Villemereuil (2019)](https://doi.org/10.1093/sysbio/syy089)
 
 :::
+:::
 
 ## Meta-analysis
 
@@ -406,6 +434,9 @@ knitr::kable(t_i2)
 ```
 
 ```{r}
+#| label: ma_all
+#| fig-cap: "Estimates of overall effect size and 95% confidence intervals"
+#| fig-cap-location: bottom
 
 orchard_plot(ma_all,
               group = "Study_ID",
@@ -481,8 +512,6 @@ summary(mr_eyespot1)
 
 ```{r}
 
-dat$Log_diameter <- log(dat$Diameter_pattern)
-
 mr_diameter <- rma.mv(yi = lnRR,
                       V = VCV, 
                       mods = ~ Log_diameter,
@@ -505,8 +534,6 @@ bubble_plot(mr_diameter,
 ### Pattern area (mm²)
 
 ```{r}
-
-dat$Log_area <- log(dat$Area_pattern)
 
 mr_area <- rma.mv(yi = lnRR,
                   V = VCV, 
@@ -605,17 +632,25 @@ mr_prey_shape <- rma.mv(yi = lnRR,
                                       data = dat)
 
 summary(mr_prey_shape)
+
+orchard_plot(mr_prey_shape,
+              mod = "Shape_prey",
+              group = "Study_ID",
+              xlab = "Shape of prey",
+              angle = 45) +
+              scale_colour_viridis_d()
+
 ```
 
 :::
 
 ## Meta-regressions: multi-moderator
 
+:::{.panel-tabset}
+
 ### All potential moderators (full model)
 
 ```{r}
-
-dat$Log_background<- log(dat$Area_background)
 
 mr_all <- rma.mv(yi = lnRR,
                 V = VCV, 
@@ -624,7 +659,6 @@ mr_all <- rma.mv(yi = lnRR,
                 Log_area + Number_pattern + 
                 Type_prey + Shape_prey,
                 random = list(~1 | Study_ID,
-                              ~1 | Shared_control_ID,
                               ~1 | Obs_ID),
                 test = "t",
                 method = "REML", 
@@ -633,6 +667,28 @@ mr_all <- rma.mv(yi = lnRR,
 
 summary(mr_all)
 ```
+
+### Moderators associated with conspicuousness
+
+```{r}
+
+mr_cons <- rma.mv(yi = lnRR,
+                V = VCV, 
+                mods = ~ Treatment_stimulus +
+                Log_diameter + Log_background + 
+                Log_area + Number_pattern,
+                random = list(~1 | Study_ID,
+                              ~1 | Obs_ID),
+                test = "t",
+                method = "REML", 
+                sparse = TRUE,
+                data = dat)
+
+summary(mr_cons)
+
+```
+
+:::
 
 ## Publication bias
 
@@ -694,8 +750,6 @@ bubble_plot(year_model,
 :::
 
 ## Additional analyses
-
-## Meta-regressions
 :::{.panel-tabset}
 
 ### Dataset
