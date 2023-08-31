@@ -19,9 +19,7 @@ format:
     max-width: "10"
     code-overflow: wrap
     df_print: paged
-    theme:
-      light: flatly
-      dark: darkly
+    theme: flatly
 crossref: 
   fig-title: Figure     # (default is "Figure")
   tbl-title: Table     # (default is "Table")
