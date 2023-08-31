@@ -434,7 +434,6 @@ summary(ma_all)
 i2 <- round(i2_ml(ma_all), 4)
 ```
 
-Heterogeneity is high (I2 = 0.95) and significant (Q = 100.5, df = 9, p < 0.001)
 ```{r}
 #| echo: false
 t_i2 <- t(i2)
@@ -487,7 +486,7 @@ t_i2_1 <- t(i2_1)
 knitr::kable(t_i2_1)
 
 ```
-**Table XX. Heterogeneity of effect size between eyespot and conspicuous patterns**
+**Table XX. Heterogeneity of effect size**
 
 
 ```{r}
