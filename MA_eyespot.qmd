@@ -19,7 +19,8 @@ format:
     max-width: "10"
     code-overflow: wrap
     df_print: paged
-    theme: flatly
+    theme: minty
+    code-line-numbers: false　　　
 crossref: 
   fig-title: Figure     # (default is "Figure")
   tbl-title: Table     # (default is "Table")
@@ -36,8 +37,10 @@ execute:
 ---
 
 ## Setting up
+Load packages
 
 ```{r}
+
 pacman::p_load(ape,
                DT,
                here, 
@@ -57,9 +60,10 @@ pacman::p_load(ape,
 First, we used a predator dataset to check whether we need to consider phylogeney. If so, we will use predator and prey datasets for following meta-analysis.
 
 ```{r}
-#| label: predator dataset
+#| label: tbl-dataset
 #| tbl-cap: "Predator dataset"
 
+library(knitr)
 dat_predator <- read.csv(here("data/predator_22072023.csv"), header = T, fileEncoding = "CP932")
 
 dat_all <-  read.csv(here("data/all_15082023.csv"), header = T, fileEncoding = "CP932")
@@ -67,10 +71,12 @@ dat_all <-  read.csv(here("data/all_15082023.csv"), header = T, fileEncoding = "
 
 datatable(dat_predator, caption = "Predator datasets", options = list(pageLength = 10, scrollX = TRUE))
 ```
+**Table XX. Predator datasets**
+
+
 ```{r}
-#| label: tree
+#| label: fig-tree
 #| fig-cap: "Phylogenetic tree of bird species"
-#| fig-cap-location: bottom
 
 trees <- read.nexus(here("data/bird_phy.nex"))
 plot(trees[[1]],type = "fan")
@@ -311,7 +317,7 @@ VCV <- vcalc(vi = lnRR_var,
 
 
 ### Final dataset for meta-analysis
-
+BUG - I cannot attach the caption to `datatable()` format table. I need to use `kable()` format table?
 ```{r}
 #| label: dataset
 #| tbl-cap: "Our datasets included predator and prey datasets"
@@ -319,6 +325,8 @@ VCV <- vcalc(vi = lnRR_var,
 datatable(dat, caption = "Dataset for meta-analysis", 
           options = list(pageLength = 10, scrollX = TRUE))
 ```
+** Table XX. Dataset for meta-analysis **
+
 
 ### Check phylogenetic relatedness
 If phylogeny do not explain heterogeniety much, we will not need to consider it and the two datasets can be merged.
@@ -432,6 +440,7 @@ Heterogeneity is high (I2 = 0.95) and significant (Q = 100.5, df = 9, p < 0.001)
 t_i2 <- t(i2)
 knitr::kable(t_i2)
 ```
+**Table XX. Heterogeneity of effect size**
 
 ```{r}
 #| label: ma_all
@@ -446,7 +455,6 @@ orchard_plot(ma_all,
               scale_fill_viridis_d()
 
 ```
-:::
 
 ## Meta-regressions: uni-moderator
 
@@ -479,8 +487,12 @@ t_i2_1 <- t(i2_1)
 knitr::kable(t_i2_1)
 
 ```
+**Table XX. Heterogeneity of effect size between eyespot and conspicuous patterns**
+
 
 ```{r}
+#| label: fig-eyespot
+#| fig-cap: "Eyespot vs. conspicuous patterns"
 
 orchard_plot(mr_eyespot,
             mod = "Treatment_stimulus",
@@ -512,6 +524,8 @@ summary(mr_eyespot1)
 ### Pattern diameter (mm) 
 
 ```{r}
+#| label: fig-diameter
+#| fig-cap: "Effect size and pattern diameter"
 
 mr_diameter <- rma.mv(yi = lnRR,
                       V = VCV, 
@@ -535,6 +549,8 @@ bubble_plot(mr_diameter,
 ### Pattern area (mm²)
 
 ```{r}
+#| label: fig-area
+#| fig-cap: "Effect size and pattern area"
 
 mr_area <- rma.mv(yi = lnRR,
                   V = VCV, 
@@ -558,6 +574,9 @@ bubble_plot(mr_area,
 ### Pattern number
 
 ```{r}
+#| label: fig-number
+#| fig-cap: "Effect size and number of patterns"
+
 mr_num <- rma.mv(yi = lnRR,
                   V = VCV,
                   mods = ~ Number_pattern,
@@ -575,6 +594,7 @@ bubble_plot(mr_num,
             mod = "Number_pattern",
             group = "Study_ID",
             xlab = "Number of patterns") 
+
 ```
 
 
@@ -582,6 +602,8 @@ bubble_plot(mr_num,
 Our dataset includes two types of stimuli: live and artificial. Is there significant difference of effect size between two stimuli?
 
 ```{r}
+#| label: fig-stimuli
+#| fig-cap: "Effect size and prey type - real vs. artificial"
 
 # normal model
 mr_prey_type <- rma.mv(yi = lnRR,
@@ -621,6 +643,9 @@ summary(mr_prey_type1)
 Our dataset includes 4 types of prey type: real butterfly, abstract butterfly, artificial prey. Is there significant difference of effect size between two stimuli?
 
 ```{r}
+#| label: fig-shape
+#| fig-cap: "Effect size and prey shape"
+
 mr_prey_shape <- rma.mv(yi = lnRR,
                         V = VCV, 
                         mods = ~ Shape_prey - 1,
@@ -650,6 +675,7 @@ orchard_plot(mr_prey_shape,
 :::{.panel-tabset}
 
 ### All potential moderators (full model)
+Include all moderators in the model.
 
 ```{r}
 
@@ -670,6 +696,7 @@ summary(mr_all)
 ```
 
 ### Moderators associated with conspicuousness
+Only include moderators related to conspicuousness (pattern diameter, pattern area, number of patterns, and background area) in the model.
 
 ```{r}
 
@@ -692,24 +719,40 @@ summary(mr_cons)
 :::
 
 ## Publication bias
+ASK: Is this correct?
+Also, how do I number sub-captions correctly?
 
 :::{.panel-tabset}
 
 ### Funnel plot
 
 ```{r}
-funnel(ma_all)
+#| layout-ncol: 2
+#| label: fig-funnel
+#| fig-cap: "Funnel plot of effect size and its standard error"
+#| fig-subcap: 
+#|   - "Effect size and its standard error"
+#|   - "Effect size and its inverse standard error"
+
+# plot on the left
+funnel(ma_all, yaxis = "sei", xlab = "Effect size (lnRR)", ylab = "Standered error" )
+
+# plot on the right
+funnel(ma_all, yaxis = "seinv", xlab = "Effect size (lnRR)", ylab = "Inverese standered error")
+
 ```
 
 ### Egger's test
 
 ```{r}
+#| label: fig-egger
+#| fig-cap: "Egger's test of publication bias"
 
 df_bias <- dat %>% mutate(sqrt_inv_e_n = sqrt((Cn + Tn)/(Cn * Tn)))
 
 bias_model <- rma.mv(yi = lnRR,
                       V = lnRR_var, 
-                      mods = ~sqrt_inv_e_n,
+                      mods = ~ 1 + sqrt_inv_e_n,
                       random = list(~1 | Study_ID,
                                     ~1 | Obs_ID),
                       test = "t",
@@ -722,16 +765,18 @@ summary(bias_model)
 bubble_plot(bias_model,
             mod = "sqrt_inv_e_n",
             group = "Study_ID",
-            xlab = "Effect size")
+            xlab = "Square root of inverse of effective sample size")
 
 ```
 
 ### Decline effect
 ```{r}
+#| label: fig-decline
+#| fig-cap: "Decline effect"
 
 year_model <- rma.mv(yi = lnRR,
                       V = VCV, 
-                      mods = ~ Year,
+                      mods = ~  1 + Year,
                       random = list(~1 | Study_ID,
                                     ~1 | Obs_ID),
                       test = "t",
@@ -744,7 +789,7 @@ summary(year_model)
 bubble_plot(year_model,
             mod = "Year",
             group = "Study_ID",
-            xlab = "Pubication year")
+            xlab = "Year of publication")
 
 ```
 
@@ -757,6 +802,8 @@ bubble_plot(year_model,
 We compared effect size between two datasets (predator and prey) to see whether there is any difference in effect size between two datasets.
 
 ```{r}
+#| label: fig-dataset
+#| fig-cap: "Effect size and dataset - predator and prey"
 
 mr_dataset <- rma.mv(yi = lnRR,
                       V = VCV,
@@ -767,17 +814,21 @@ mr_dataset <- rma.mv(yi = lnRR,
                       method = "REML",
                       sparse = TRUE,
                       data = dat)
+
 summary(mr_dataset)
 
 orchard_plot(mr_dataset,
             mod = "Dataset",
             group = "Study_ID",
-            xlab = "Dataset") 
+            xlab = "Dataset", 
+            angle = 45) 
 
 ```
 
 ### Background area (mm²)
 ```{r}
+#| label: fig-background
+#| fig-cap: "Effect size and background area"
 
 mr_background <- rma.mv(yi = lnRR,
                         V = VCV, 
@@ -802,6 +853,7 @@ bubble_plot(mr_background,
 ## R session infomation
 ```{r}
 #| echo: false
+
 sessionInfo() %>% pander::pander()
 
 ```
