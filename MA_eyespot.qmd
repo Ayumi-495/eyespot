@@ -79,7 +79,7 @@ plot(trees[[1]],type = "fan")
 
 
 ### Calculate effect size and its variance
-Create function for calculating effect size and its variance
+Create function for calculating effect size and its variance.
 ```{r}
 # function for calculating effect size (lnRR)
 effect_lnRR <- function(dt) {
