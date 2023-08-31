@@ -67,10 +67,10 @@ dat_all <-  read.csv(here("data/all_15082023.csv"), header = T, fileEncoding = "
 datatable(dat_predator, caption = "Predator datasets", options = list(pageLength = 10, scrollX = TRUE))
 ```
 ```{r}
-
 #| label: tree
 #| fig-cap: "Phylogenetic tree of bird species"
 #| fig-cap-location: bottom
+
 trees <- read.nexus(here("data/bird_phy.nex"))
 plot(trees[[1]],type = "fan")
 
@@ -800,7 +800,7 @@ bubble_plot(mr_background,
 
 ## R session infomation
 ```{r}
-
+#| echo: false
 sessionInfo() %>% pander::pander()
 
 ```
