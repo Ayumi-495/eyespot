@@ -10,7 +10,6 @@ format:
     toc-float: true
     toc-title: "**Contents**"
     output-file: "index.html"
-    theme: Flatly
     embed-resources: true
     code-fold: true
     code-tools: true
@@ -446,6 +445,7 @@ orchard_plot(ma_all,
               scale_fill_viridis_d()
 
 ```
+:::
 
 ## Meta-regressions: uni-moderator
 
