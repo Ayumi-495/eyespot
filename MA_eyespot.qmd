@@ -280,7 +280,6 @@ trees <- read.nexus(here("data/bird_phy.nex"))
 plot(trees[1])
 ```
 
-```
 
 
 ### Calculate lnRR and lnRR variance
