@@ -38,7 +38,7 @@ execute:
 
 ## Setting ups
 Load packages and custum function.
-Custum function is used for calculating effect size (lnRR) and its variance (lnRR_var) from raw data.
+Custum function is used for calculating effect size (lnRR) and its variance from raw data.
 
 ```{r}
 
