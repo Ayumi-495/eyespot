@@ -36,8 +36,9 @@ execute:
   #cache: true
 ---
 
-## Setting up
-Load packages
+## Setting ups
+Load packages and custum function.
+Custum function is used for calculating effect size (lnRR) and its variance (lnRR_var) from raw data.
 
 ```{r}
 
@@ -50,44 +51,7 @@ pacman::p_load(ape,
                miWQS,
                orchaRd,
                parallel)
-```
 
-## prepare datasets for analysis
-
-::: {.panel-tabset}
-
-### Read datasets and phylogeny
-First, we used a predator dataset to check whether we need to consider phylogeney. If so, we will use predator and prey datasets for following meta-analysis.
-
-```{r}
-#| label: tbl-dataset
-#| tbl-cap: "Predator dataset"
-
-library(knitr)
-dat_predator <- read.csv(here("data/predator_22072023.csv"), header = T, fileEncoding = "CP932")
-
-dat_all <-  read.csv(here("data/all_15082023.csv"), header = T, fileEncoding = "CP932")
-
-
-datatable(dat_predator, caption = "Predator datasets", options = list(pageLength = 10, scrollX = TRUE))
-```
-**Table 1 - Predator datasets**
-
-
-```{r}
-#| label: fig-tree
-#| fig-cap: "Phylogenetic tree of bird species"
-
-trees <- read.nexus(here("data/bird_phy.nex"))
-plot(trees[[1]],type = "fan")
-
-```
-
-
-
-### Calculate effect size and its variance
-Create function for calculating effect size and its variance.
-```{r}
 # function for calculating effect size (lnRR)
 effect_lnRR <- function(dt) {
   # replace 0 in "C_mean", "T_sd", "C_sd", "C_proportion" with each minimum values
@@ -285,6 +249,39 @@ effect_lnRR <- function(dt) {
   return(dt1)
 }
 ```
+
+## prepare datasets for analysis
+
+::: {.panel-tabset}
+
+### Read datasets and phylogeny
+First, we used a predator dataset to check whether we need to consider phylogeney. If so, we will use predator and prey datasets for following meta-analysis.
+
+```{r}
+#| label: tbl-dataset
+#| tbl-cap: "Predator dataset"
+
+library(knitr)
+dat_predator <- read.csv(here("data/predator_22072023.csv"), header = T, fileEncoding = "CP932")
+
+dat_all <-  read.csv(here("data/all_15082023.csv"), header = T, fileEncoding = "CP932")
+
+
+datatable(dat_predator, caption = "Predator datasets", options = list(pageLength = 10, scrollX = TRUE))
+```
+**Table 1 - Predator datasets**
+
+
+```{r}
+#| label: fig-tree
+#| fig-cap: "Phylogenetic tree of bird species"
+
+trees <- read.nexus(here("data/bird_phy.nex"))
+plot(trees[1])
+```
+
+```
+
 
 ### Calculate lnRR and lnRR variance
 ```{r}
@@ -631,7 +628,7 @@ orchard_plot(mr_prey_type,
 # intercept-removed model
 mr_prey_type1 <- rma.mv(yi = lnRR,
                         V = VCV, 
-                        mods = ~ Type_prey,
+                        mods = ~ Type_prey -1,
                         random = list(~1 | Study_ID,
                                       ~1 | Obs_ID),
                         test = "t",
