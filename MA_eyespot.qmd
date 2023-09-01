@@ -24,7 +24,7 @@ format:
 crossref: 
   fig-title: Figure     # (default is "Figure")
   tbl-title: Table     # (default is "Table")
-  title-delim: —     # (default is ":")
+  title-delim:  —     # (default is ":")
   fig-prefix: Fig.   # (default is "Figure")
   tbl-prefix: Table.    # (default is "Table")
 editor_options: 
@@ -71,7 +71,7 @@ dat_all <-  read.csv(here("data/all_15082023.csv"), header = T, fileEncoding = "
 
 datatable(dat_predator, caption = "Predator datasets", options = list(pageLength = 10, scrollX = TRUE))
 ```
-**Table XX. Predator datasets**
+**Table 1 - Predator datasets**
 
 
 ```{r}
@@ -325,7 +325,7 @@ BUG - I cannot attach the caption to `datatable()` format table. I need to use `
 datatable(dat, caption = "Dataset for meta-analysis", 
           options = list(pageLength = 10, scrollX = TRUE))
 ```
-** Table XX. Dataset for meta-analysis **
+**Table 2 - Dataset for meta-analysis**
 
 
 ### Check phylogenetic relatedness
@@ -439,10 +439,10 @@ i2 <- round(i2_ml(ma_all), 4)
 t_i2 <- t(i2)
 knitr::kable(t_i2)
 ```
-**Table XX. Heterogeneity of effect size**
+**Table 3 - Heterogeneity of effect size**
 
 ```{r}
-#| label: ma_all
+#| label: fig-ma_all
 #| fig-cap: "Estimates of overall effect size and 95% confidence intervals"
 #| fig-cap-location: bottom
 
