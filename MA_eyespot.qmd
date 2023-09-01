@@ -43,13 +43,13 @@ Load packages
 
 pacman::p_load(ape,
                DT,
+               ggokabeito,
                here, 
                tidyverse, 
                metafor,
                miWQS,
                orchaRd,
-               parallel,
-               viridis)
+               parallel)
 ```
 
 ## prepare datasets for analysis
@@ -451,7 +451,8 @@ orchard_plot(ma_all,
               xlab = "log response ratio (lnRR)", 
               angle = 45) + 
               scale_x_discrete(labels = c("Overall effect")) + 
-              scale_fill_viridis_d()
+              scale_colour_okabe_ito()+
+              scale_fill_okabe_ito()
 
 ```
 
@@ -498,7 +499,8 @@ orchard_plot(mr_eyespot,
             group = "Study_ID",
             xlab = "log response ratio (lnRR)",
             angle = 45) + 
-            scale_colour_viridis_d(option = "plasma")
+            scale_colour_okabe_ito(order = 2:3)+
+            scale_fill_okabe_ito(order = 2:3)
 
 ```
 
@@ -622,7 +624,9 @@ orchard_plot(mr_prey_type,
               group = "Study_ID",
               xlab = "Type of prey",
               angle = 45) +
-              scale_colour_viridis_d(option = "plasma")
+            scale_colour_okabe_ito(order = 4:5)+
+            scale_fill_okabe_ito(order = 4:5)
+
 
 # intercept-removed model
 mr_prey_type1 <- rma.mv(yi = lnRR,
@@ -663,7 +667,8 @@ orchard_plot(mr_prey_shape,
               group = "Study_ID",
               xlab = "Shape of prey",
               angle = 45) +
-              scale_colour_viridis_d()
+              scale_colour_okabe_ito(order = 6:9)+
+              scale_fill_okabe_ito(order = 6:9)
 
 ```
 
