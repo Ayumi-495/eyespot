@@ -45,12 +45,16 @@ Custum function is used for calculating effect size (lnRR) and its variance from
 pacman::p_load(ape,
                DT,
                ggokabeito,
+               ggcorrplot,
                here, 
-               tidyverse, 
+               knitr,
+               tidyverse,
+               patchwork,
                metafor,
                miWQS,
                orchaRd,
-               parallel)
+               parallel,
+               uncoveR)
 
 # function for calculating effect size (lnRR)
 effect_lnRR <- function(dt) {
@@ -261,7 +265,6 @@ First, we used a predator dataset to check whether we need to consider phylogene
 #| label: tbl-dataset
 #| tbl-cap: "Predator dataset"
 
-library(knitr)
 dat_predator <- read.csv(here("data/predator_22072023.csv"), header = T, fileEncoding = "CP932")
 
 dat_all <-  read.csv(here("data/all_15082023.csv"), header = T, fileEncoding = "CP932")
@@ -313,7 +316,7 @@ VCV <- vcalc(vi = lnRR_var,
 
 
 ### Final dataset for meta-analysis
-BUG - I cannot attach the caption to `datatable()` format table. I need to use `kable()` format table?
+I cannot attach the caption to `datatable()` format table. I need to use `kable()` format table?
 ```{r}
 #| label: dataset
 #| tbl-cap: "Our datasets included predator and prey datasets"
@@ -354,9 +357,7 @@ phy_model <- function(cor_tree = vcv_tree){
 tree_50 <- trees[1:50]
 vcv_tree_50 <- map(tree_50, ~vcv(.x, corr = TRUE))
 
-
 # Run multiple meta-analyses with 50 different trees and obtain the combined result
-
 
 ma_50 <- mclapply(vcv_tree_50, phy_model, mc.cores = 8) 
 ```
@@ -670,6 +671,116 @@ orchard_plot(mr_prey_shape,
 
 :::
 
+## Correlation visualisation and choose moderators
+Before we run multi-moderator meta-regressions, we need to consider the correlation between moderators.
+Area, diameter and background seem to be correlated. We visualised the correlation between these variables.
+
+:::{.panel-tabset}
+
+### Visualisation of correlation
+
+```{r}
+#| label: fig-cor-continuous
+#| fig-cap: "Correlation between coninuous moderators"
+
+# correlation between continuous variables
+corr_cont <- round(cor(dat[, c("Diameter_pattern", "Area_pattern", "Number_pattern", "Area_background")]),2)
+
+p1 <- ggcorrplot(corr_cont, hc.order = TRUE, lab = TRUE, outline.col = "white", colors = c("#6D9EC1", "white", "#E46726"), title = "(a) Continuous variables")
+
+corr_cont_log <- round(cor(dat[, c("Log_diameter", "Log_area", "Number_pattern", "Log_background")]),2)
+
+p2 <- ggcorrplot(corr_cont_log, hc.order = TRUE, lab = TRUE, outline.col = "white", colors = c("#6D9EC1", "white", "#E46726"), title = "(b) Log-transormed continuous variables")
+
+p1 + p2 +plot_layout(guides = 'collect')
+```
+
+```{r}
+#| label: fig-cor-categorical
+#| fig-cap: "Correlation between categorical variables"
+
+dat1 <- dat %>%
+  select(Treatment_stimulus, Type_prey, Shape_prey)
+
+assocMatrix(dat1)
+
+```
+ASK Why y-axis is shown "NA"?
+
+### Choose moderators
+We used model R2 values to find better model and modelator VIF values to check multicollinearity between moderators. 
+Higher R2 indicates better model and VIF > 2 indicates multicollinearity. 
+
+#### R2
+```{r}
+
+r2_area <- rma.mv(yi = lnRR,
+                  V = VCV,
+                  mods = ~ Log_area + Number_pattern,
+                  random = list(~1 | Study_ID,
+                                ~1 | Obs_ID),
+                  test = "t",
+                  method = "REML",
+                  sparse = TRUE,
+                  data = dat)
+
+r2_diameter <- rma.mv(yi = lnRR,
+                      V = VCV,
+                      mods = ~ Log_diameter + Number_pattern,
+                      random = list(~1 | Study_ID,
+                                    ~1 | Obs_ID),
+                      test = "t",
+                      method = "REML",
+                      sparse = TRUE,
+                      data = dat)
+
+# check r2 values
+r2_ml(r2_area)
+r2_ml(r2_diameter)
+
+```
+It seems **area** is a better predictor than **diameter** .
+
+#### VIF
+```{r}
+
+vif_1 <- rma.mv(yi = lnRR,
+                V = VCV,
+                mods = ~ Log_area + Number_pattern + 
+                        Treatment_stimulus + Type_prey + Shape_prey,
+                random = list(~1 | Study_ID,
+                              ~1 | Obs_ID), 
+                test = "t",
+                method = "REML",
+                sparse = TRUE,
+                data = dat)
+
+# we get Warning message:
+# Redundant predictors dropped from the model. 
+
+vif.rma(vif_1)
+```
+Shape_prey has high VIF value. We removed it from the model and run new model.
+
+```{r}
+
+vif_2 <- rma.mv(yi = lnRR,
+                V = VCV,
+                mods = ~ Log_area + Number_pattern + 
+                        Treatment_stimulus + Type_prey,
+                random = list(~1 | Study_ID,
+                              ~1 | Obs_ID), 
+                test = "t",
+                method = "REML",
+                sparse = TRUE,
+                data = dat)
+
+vif.rma(vif_2)
+```
+It looks good. We will use this model.
+
+:::
+
 ## Meta-regressions: multi-moderator
 
 :::{.panel-tabset}
@@ -681,10 +792,8 @@ Include all moderators in the model.
 
 mr_all <- rma.mv(yi = lnRR,
                 V = VCV, 
-                mods = ~ Treatment_stimulus +
-                Log_diameter + Log_background + 
-                Log_area + Number_pattern + 
-                Type_prey + Shape_prey,
+                mods = ~ Treatment_stimulus + Log_area 
+                + Number_pattern + Type_prey,
                 random = list(~1 | Study_ID,
                               ~1 | Obs_ID),
                 test = "t",
@@ -693,18 +802,18 @@ mr_all <- rma.mv(yi = lnRR,
                 data = dat)
 
 summary(mr_all)
+
+r2_ml(mr_all)
 ```
 
 ### Moderators associated with conspicuousness
-Only include moderators related to conspicuousness (pattern diameter, pattern area, number of patterns, and background area) in the model.
+Only include moderators related to conspicuousness (pattern area and number of patterns) in the model.
 
 ```{r}
 
 mr_cons <- rma.mv(yi = lnRR,
                 V = VCV, 
-                mods = ~ Treatment_stimulus +
-                Log_diameter + Log_background + 
-                Log_area + Number_pattern,
+                mods = ~ Log_area + Number_pattern,
                 random = list(~1 | Study_ID,
                               ~1 | Obs_ID),
                 test = "t",
@@ -713,9 +822,20 @@ mr_cons <- rma.mv(yi = lnRR,
                 data = dat)
 
 summary(mr_cons)
-
 ```
+```{r}
+mr_cons_1 <- rma.mv(yi = lnRR,
+                V = VCV, 
+                mods = ~ Log_area + Number_pattern + Treatment_stimulus,
+                random = list(~1 | Study_ID,
+                              ~1 | Obs_ID),
+                test = "t",
+                method = "REML", 
+                sparse = TRUE,
+                data = dat)
 
+summary(mr_cons_1)
+```
 :::
 
 ## Publication bias
@@ -850,10 +970,28 @@ bubble_plot(mr_background,
 ```
 :::
 
+
+## Figure galary
+:::{.panel-tabset}
+
+```{r}
+#| label: fig-galary
+
+
+
+```
+
+:::
+
 ## R session infomation
 ```{r}
 #| echo: false
 
 sessionInfo() %>% pander::pander()
+
+```
+
+
+```{r}
 
 ```
