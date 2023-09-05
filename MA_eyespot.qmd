@@ -254,7 +254,7 @@ effect_lnRR <- function(dt) {
 }
 ```
 
-## prepare datasets for analysis
+## Prepare datasets for analysis
 
 ::: {.panel-tabset}
 
@@ -835,6 +835,19 @@ mr_cons_1 <- rma.mv(yi = lnRR,
                 data = dat)
 
 summary(mr_cons_1)
+```
+
+### Moderators associated with prey
+```{r}
+mr_pre <- rma.mv(yi = lnRR,
+                V = VCV, 
+                mods = ~ Treatment_stimulus + Type_prey,
+                random = list(~1 | Study_ID,
+                              ~1 | Obs_ID),
+                test = "t",
+                method = "REML", 
+                sparse = TRUE,
+                data = dat)
 ```
 :::
 
