@@ -867,11 +867,23 @@ Also, how do I number sub-captions correctly?
 #|   - "Effect size and its standard error"
 #|   - "Effect size and its inverse standard error"
 
-# plot on the left
-funnel(ma_all, yaxis = "sei", xlab = "Effect size (lnRR)", ylab = "Standered error" )
+# funnel plot - standard error
+funnel(ma_all, yaxis = "sei", 
+      xlab = "Standarized residuals",
+      ylab = "Precision (inverse of SE)" )
 
-# plot on the right
-funnel(ma_all, yaxis = "seinv", xlab = "Effect size (lnRR)", ylab = "Inverese standered error")
+# funnel plot - inverse of standard error
+f2 <- funnel(ma_all, yaxis = "seinv", 
+      xlab = "Standarized residuals",
+      ylab = "Precision (inverse of SE)",  col = c(alpha("orange", 0.5)))
+
+# Cut outliners (cut out plots with a value of 80 or more)　I think this is better…
+f3 <- funnel(ma_all, yaxis = "seinv", 
+      xlab = "Standarized residuals",
+      ylab = "Precision (inverse of SE)",
+      xlim = c(-4,4), 
+      ylim = c(0.8, 80), 
+      col = c(alpha("mediumvioletred", 0.5)))
 
 ```
 
@@ -987,13 +999,92 @@ bubble_plot(mr_background,
 ## Figure galary
 :::{.panel-tabset}
 
+### Discrete moderators
 ```{r}
-#| label: fig-galary
+#| label: fig-galary1
+#| fig-cap: "Discrete moderators"
 
+p1 <- orchard_plot(ma_all,
+                    group = "Study_ID",
+                    xlab = "log response ratio (lnRR)", 
+                    angle = 45,
+                    legend.pos = "top.left") + 
+                    scale_x_discrete(labels = c("Overall effect")) + 
+                    theme(legend.direction = "vertical") +
+                    scale_colour_okabe_ito()+
+                    scale_fill_okabe_ito()
 
+p2 <- orchard_plot(mr_eyespot,
+                  mod = "Treatment_stimulus",
+                  group = "Study_ID",
+                  xlab = "log response ratio (lnRR)",
+                  angle = 45,
+                  legend.pos = "top.left") + 
+                  theme(legend.direction = "vertical") +
+                  scale_colour_okabe_ito(order = 2:3)+
+                  scale_fill_okabe_ito(order = 2:3)
 
+p3 <- orchard_plot(mr_prey_type,
+                  mod = "Type_prey",
+                  group = "Study_ID",
+                  xlab = "log response ratio (lnRR)",
+                  angle = 45,
+                  legend.pos = "top.left") +
+                  theme(legend.direction = "vertical") + scale_colour_okabe_ito(order = 4:5) +
+                  scale_fill_okabe_ito(order = 4:5)
+
+patch1 <- p1 | (p2 / p3)
+patch1 + plot_annotation(tag_levels = "a")
 ```
 
+### Continuous moderators
+```{r}
+#| label: fig-galary2
+#| fig-cap: "Continuous moderators"
+
+p4 <- bubble_plot(mr_area,
+                  mod = "Log_area",
+                  group = "Study_ID",
+                  xlab = "Log-transformed area")
+
+p5 <- bubble_plot(mr_num,
+            mod = "Number_pattern",
+            group = "Study_ID",
+            xlab = "Number of patterns") 
+
+p4 / p5 + plot_annotation(tag_levels = "a")
+```
+
+### Publication bias
+I got error message when I used `ggdraw()` function. I need to ask this later.
+```{r}
+#| label: fig-galary3
+#| fig-cap: "Publication bias"
+#| fig-subcap:
+#|    - "Funnel plot"
+#|    - "Egger's test and Decline effect"
+
+funnel(ma_all, yaxis = "seinv", 
+xlab = "Standarized residuals",
+ylab = "Precision (inverse of SE)",
+xlim = c(-4,4), 
+ylim = c(0.8, 80), 
+col = c(alpha("mediumvioletred", 0.5)))
+
+p7 <- bubble_plot(bias_model,
+            mod = "sqrt_inv_e_n",
+            group = "Study_ID",
+            xlab = "Square root of inverse of effective sample size")
+
+p8 <- bubble_plot(year_model,
+            mod = "Year",
+            group = "Study_ID",
+            xlab = "Year of publication")
+
+pub_b <- p7 / p8
+pub_b +  plot_annotation(tag_levels = 'a') 
+
+```
 :::
 
 ## R session infomation
