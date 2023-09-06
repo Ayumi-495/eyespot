@@ -475,6 +475,7 @@ mr_eyespot <- rma.mv(yi = lnRR,
 
 summary(mr_eyespot)
 i2_1 <- round(i2_ml(mr_eyespot), 4)
+r2_1 <- round(r2_ml(mr_eyespot), 4)
 ```
 
 ```{r}
@@ -483,8 +484,10 @@ i2_1 <- round(i2_ml(mr_eyespot), 4)
 t_i2_1 <- t(i2_1)
 knitr::kable(t_i2_1)
 
+t_r2_1 <- t(r2_1)
+knitr::kable(t_r2_1)  
 ```
-**Table XX. Heterogeneity of effect size**
+**Table XX. Heterogeneity of effect size and model goodness-of-fit**
 
 
 ```{r}
@@ -537,6 +540,23 @@ mr_diameter <- rma.mv(yi = lnRR,
 
 summary(mr_diameter)
 
+i2_2 <- round(i2_ml(mr_diameter), 4)
+r2_2 <- round(r2_ml(mr_diameter), 4)
+```
+
+```{r}
+#| echo: false
+
+t_i2_2 <- t(i2_2)
+knitr::kable(t_i2_2)
+
+t_r2_2 <- t(r2_2)
+knitr::kable(t_r2_2)  
+```
+**Table XX. Heterogeneity of effect size and model goodness-of-fit**
+
+```{r}
+
 bubble_plot(mr_diameter,
             mod = "Log_diameter",
             group = "Study_ID",
@@ -561,6 +581,23 @@ mr_area <- rma.mv(yi = lnRR,
                   data = dat)
 
 summary(mr_area)
+
+i2_3 <- round(i2_ml(mr_area), 4)
+r2_3 <- round(r2_ml(mr_area), 4)
+```
+
+```{r}
+#| echo: false
+
+t_i2_3 <- t(i2_3)
+knitr::kable(t_i2_3)
+
+t_r2_3 <- t(r2_3)
+knitr::kable(t_r2_3)  
+```
+**Table XX. Heterogeneity of effect size and model goodness-of-fit**
+
+```{r}
 
 bubble_plot(mr_area,
             mod = "Log_area",
@@ -587,6 +624,22 @@ mr_num <- rma.mv(yi = lnRR,
                       data = dat)
 
 summary(mr_num)
+i2_4 <- round(i2_ml(mr_num), 4)
+r2_4 <- round(r2_ml(mr_num), 4)
+```
+
+```{r}
+#| echo: false
+
+t_i2_4 <- t(i2_4)
+knitr::kable(t_i2_4)
+
+t_r2_4 <- t(r2_4)
+knitr::kable(t_r2_4)  
+```
+**Table XX. Heterogeneity of effect size and model goodness-of-fit**
+  
+  ```{r}
 
 bubble_plot(mr_num,
             mod = "Number_pattern",
@@ -615,6 +668,23 @@ mr_prey_type <- rma.mv(yi = lnRR,
                   data = dat)
 
 summary(mr_prey_type)
+
+i2_5 <- round(i2_ml(mr_prey_type), 4)
+r2_5 <- round(r2_ml(mr_prey_type), 4)
+```
+
+```{r}
+#| echo: false
+
+t_i2_5 <- t(i2_5)
+knitr::kable(t_i2_5)
+
+t_r2_5 <- t(r2_5)
+knitr::kable(t_r2_5)  
+```
+**Table XX. Heterogeneity of effect size and model goodness-of-fit**
+
+```{r}
 
 orchard_plot(mr_prey_type,
               mod = "Type_prey",
@@ -658,6 +728,23 @@ mr_prey_shape <- rma.mv(yi = lnRR,
                                       data = dat)
 
 summary(mr_prey_shape)
+
+i2_6 <- round(i2_ml(mr_prey_shape), 4)
+r2_6 <- round(r2_ml(mr_prey_shape), 4)
+```
+
+```{r}
+#| echo: false
+
+t_i2_6 <- t(i2_6)
+knitr::kable(t_i2_6)
+
+t_r2_6 <- t(r2_6)
+knitr::kable(t_r2_6)  
+```
+**Table XX. Heterogeneity of effect size and model goodness-of-fit**
+
+```{r}
 
 orchard_plot(mr_prey_shape,
               mod = "Shape_prey",
@@ -822,7 +909,10 @@ mr_cons <- rma.mv(yi = lnRR,
                 data = dat)
 
 summary(mr_cons)
+r2_ml(mr_cons)
+
 ```
+
 ```{r}
 mr_cons_1 <- rma.mv(yi = lnRR,
                 V = VCV, 
@@ -835,6 +925,9 @@ mr_cons_1 <- rma.mv(yi = lnRR,
                 data = dat)
 
 summary(mr_cons_1)
+
+r2_ml(mr_cons_1)
+
 ```
 
 ### Moderators associated with prey
@@ -848,6 +941,10 @@ mr_pre <- rma.mv(yi = lnRR,
                 method = "REML", 
                 sparse = TRUE,
                 data = dat)
+
+summary(mr_pre)
+
+r2_ml(mr_pre)
 ```
 :::
 
