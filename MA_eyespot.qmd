@@ -1003,24 +1003,28 @@ bubble_plot(mr_background,
 ```{r}
 #| label: fig-galary1
 #| fig-cap: "Discrete moderators"
-
+#| include: false
+#| 
 p1 <- orchard_plot(ma_all,
                     group = "Study_ID",
                     xlab = "log response ratio (lnRR)", 
                     angle = 45,
                     legend.pos = "top.left") + 
                     scale_x_discrete(labels = c("Overall effect")) + 
-                    theme(legend.direction = "vertical") +
+                    theme(legend.direction = "vertical",
+                    legend.text = element_text(size = 6)) +
+                    
                     scale_colour_okabe_ito()+
                     scale_fill_okabe_ito()
-
+p1
 p2 <- orchard_plot(mr_eyespot,
                   mod = "Treatment_stimulus",
                   group = "Study_ID",
                   xlab = "log response ratio (lnRR)",
                   angle = 45,
                   legend.pos = "top.left") + 
-                  theme(legend.direction = "vertical") +
+                  theme(legend.direction = "vertical",
+                  legend.text = element_text(size = 6)) +
                   scale_colour_okabe_ito(order = 2:3)+
                   scale_fill_okabe_ito(order = 2:3)
 
@@ -1030,30 +1034,42 @@ p3 <- orchard_plot(mr_prey_type,
                   xlab = "log response ratio (lnRR)",
                   angle = 45,
                   legend.pos = "top.left") +
-                  theme(legend.direction = "vertical") + scale_colour_okabe_ito(order = 4:5) +
+                  theme(legend.direction = "vertical",
+                  legend.text = element_text(size = 6))+ 
+                  scale_colour_okabe_ito(order = 4:5) +
                   scale_fill_okabe_ito(order = 4:5)
 
 patch1 <- p1 | (p2 / p3)
 patch1 + plot_annotation(tag_levels = "a")
+ggsave("fig1.pdf", width = 10, height = 5, dpi = 450)
+
 ```
+![Figure - discrete moderators](figs/fig1.png)
 
 ### Continuous moderators
 ```{r}
 #| label: fig-galary2
 #| fig-cap: "Continuous moderators"
+#| include: false
 
 p4 <- bubble_plot(mr_area,
                   mod = "Log_area",
                   group = "Study_ID",
-                  xlab = "Log-transformed area")
+                  xlab = "Log-transformed area") +
+                  scale_x_continuous(breaks = seq(0,7,1.5)) +
+                  scale_y_continuous(breaks = seq(-2.5, 4.5, 1.5))
 
 p5 <- bubble_plot(mr_num,
             mod = "Number_pattern",
             group = "Study_ID",
-            xlab = "Number of patterns") 
+            xlab = "Number of patterns") +
+                  scale_x_continuous(breaks = seq(0,11,1.5)) +
+                  scale_y_continuous(breaks = seq(-2.5, 4.5, 1.5))
 
 p4 / p5 + plot_annotation(tag_levels = "a")
+ggsave("fig2.pdf", width = 10, height = 10, dpi = 450)
 ```
+![Figure - continuous moderators](figs/fig2.png)
 
 ### Publication bias
 I got error message when I used `ggdraw()` function. I need to ask this later.
@@ -1063,28 +1079,42 @@ I got error message when I used `ggdraw()` function. I need to ask this later.
 #| fig-subcap:
 #|    - "Funnel plot"
 #|    - "Egger's test and Decline effect"
+#| layout-ncol: 2
+#| include: false
 
 funnel(ma_all, yaxis = "seinv", 
 xlab = "Standarized residuals",
 ylab = "Precision (inverse of SE)",
-xlim = c(-4,4), 
+xlim = c(-3.0, 4.5), 
 ylim = c(0.8, 80), 
-col = c(alpha("mediumvioletred", 0.5)))
+col = c(alpha("mediumvioletred", 0.5)),
+cex = 0.7)
 
 p7 <- bubble_plot(bias_model,
             mod = "sqrt_inv_e_n",
             group = "Study_ID",
-            xlab = "Square root of inverse of effective sample size")
+            xlab = "Square root of inverse of effective sample size") +
+            scale_y_continuous(breaks = seq(-2.5, 4.5, 1.5)) 
 
 p8 <- bubble_plot(year_model,
             mod = "Year",
             group = "Study_ID",
-            xlab = "Year of publication")
+            xlab = "Year of publication") +  scale_y_continuous(breaks = seq(-2.5, 4.0, 1.5)) 
 
 pub_b <- p7 / p8
 pub_b +  plot_annotation(tag_levels = 'a') 
 
+ggsave("fig4.pdf", width = 10, height = 10, dpi = 450)
+
 ```
+
+:::{layout-ncol=2}
+![fig.3](figs/fig3.png)
+
+![fig.4](figs/fig4.png)
+
+Publication bias
+:::
 :::
 
 ## R session infomation
@@ -1092,10 +1122,5 @@ pub_b +  plot_annotation(tag_levels = 'a')
 #| echo: false
 
 sessionInfo() %>% pander::pander()
-
-```
-
-
-```{r}
 
 ```
