@@ -429,12 +429,15 @@ ma_all <- rma.mv(yi = lnRR,
 
 summary(ma_all)
 i2 <- round(i2_ml(ma_all), 4)
+r2 <- round(r2_ml(ma_all), 4)
 ```
 
 ```{r}
 #| echo: false
 t_i2 <- t(i2)
+t_r2 <- t(r2)
 knitr::kable(t_i2)
+knitr::kable(t_r2)
 ```
 **Table 3 - Heterogeneity of effect size**
 
@@ -637,9 +640,10 @@ knitr::kable(t_i2_4)
 t_r2_4 <- t(r2_4)
 knitr::kable(t_r2_4)  
 ```
+
 **Table XX. Heterogeneity of effect size and model goodness-of-fit**
   
-  ```{r}
+```{r}
 
 bubble_plot(mr_num,
             mod = "Number_pattern",
@@ -651,7 +655,6 @@ bubble_plot(mr_num,
 
 ### Stimuli type
 Our dataset includes two types of stimuli: live and artificial. Is there significant difference of effect size between two stimuli?
-
 ```{r}
 #| label: fig-stimuli
 #| fig-cap: "Effect size and prey type - real vs. artificial"
@@ -671,6 +674,7 @@ summary(mr_prey_type)
 
 i2_5 <- round(i2_ml(mr_prey_type), 4)
 r2_5 <- round(r2_ml(mr_prey_type), 4)
+
 ```
 
 ```{r}
@@ -680,7 +684,8 @@ t_i2_5 <- t(i2_5)
 knitr::kable(t_i2_5)
 
 t_r2_5 <- t(r2_5)
-knitr::kable(t_r2_5)  
+knitr::kable(t_r2_5)
+
 ```
 **Table XX. Heterogeneity of effect size and model goodness-of-fit**
 
