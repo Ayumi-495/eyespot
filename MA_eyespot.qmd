@@ -477,20 +477,18 @@ mr_eyespot <- rma.mv(yi = lnRR,
                     data = dat)
 
 summary(mr_eyespot)
-i2_1 <- round(i2_ml(mr_eyespot), 4)
+
 r2_1 <- round(r2_ml(mr_eyespot), 4)
 ```
 
 ```{r}
 #| echo: false
 
-t_i2_1 <- t(i2_1)
-knitr::kable(t_i2_1)
 
 t_r2_1 <- t(r2_1)
 knitr::kable(t_r2_1)  
 ```
-**Table XX. Heterogeneity of effect size and model goodness-of-fit**
+**Table XX. Model goodness-of-fit**
 
 
 ```{r}
@@ -543,20 +541,18 @@ mr_diameter <- rma.mv(yi = lnRR,
 
 summary(mr_diameter)
 
-i2_2 <- round(i2_ml(mr_diameter), 4)
+
 r2_2 <- round(r2_ml(mr_diameter), 4)
 ```
 
 ```{r}
 #| echo: false
 
-t_i2_2 <- t(i2_2)
-knitr::kable(t_i2_2)
 
 t_r2_2 <- t(r2_2)
 knitr::kable(t_r2_2)  
 ```
-**Table XX. Heterogeneity of effect size and model goodness-of-fit**
+**Table XX. Model goodness-of-fit**
 
 ```{r}
 
@@ -585,20 +581,16 @@ mr_area <- rma.mv(yi = lnRR,
 
 summary(mr_area)
 
-i2_3 <- round(i2_ml(mr_area), 4)
 r2_3 <- round(r2_ml(mr_area), 4)
 ```
 
 ```{r}
 #| echo: false
 
-t_i2_3 <- t(i2_3)
-knitr::kable(t_i2_3)
-
 t_r2_3 <- t(r2_3)
 knitr::kable(t_r2_3)  
 ```
-**Table XX. Heterogeneity of effect size and model goodness-of-fit**
+**Table XX. Model goodness-of-fit**
 
 ```{r}
 
@@ -627,21 +619,18 @@ mr_num <- rma.mv(yi = lnRR,
                       data = dat)
 
 summary(mr_num)
-i2_4 <- round(i2_ml(mr_num), 4)
+
 r2_4 <- round(r2_ml(mr_num), 4)
 ```
 
 ```{r}
 #| echo: false
 
-t_i2_4 <- t(i2_4)
-knitr::kable(t_i2_4)
-
 t_r2_4 <- t(r2_4)
 knitr::kable(t_r2_4)  
 ```
 
-**Table XX. Heterogeneity of effect size and model goodness-of-fit**
+**Table XX. Model goodness-of-fit**
   
 ```{r}
 
@@ -672,7 +661,6 @@ mr_prey_type <- rma.mv(yi = lnRR,
 
 summary(mr_prey_type)
 
-i2_5 <- round(i2_ml(mr_prey_type), 4)
 r2_5 <- round(r2_ml(mr_prey_type), 4)
 
 ```
@@ -680,14 +668,11 @@ r2_5 <- round(r2_ml(mr_prey_type), 4)
 ```{r}
 #| echo: false
 
-t_i2_5 <- t(i2_5)
-knitr::kable(t_i2_5)
-
 t_r2_5 <- t(r2_5)
 knitr::kable(t_r2_5)
 
 ```
-**Table XX. Heterogeneity of effect size and model goodness-of-fit**
+**Table XX. Model goodness-of-fit**
 
 ```{r}
 
@@ -734,20 +719,16 @@ mr_prey_shape <- rma.mv(yi = lnRR,
 
 summary(mr_prey_shape)
 
-i2_6 <- round(i2_ml(mr_prey_shape), 4)
 r2_6 <- round(r2_ml(mr_prey_shape), 4)
 ```
 
 ```{r}
 #| echo: false
 
-t_i2_6 <- t(i2_6)
-knitr::kable(t_i2_6)
-
 t_r2_6 <- t(r2_6)
 knitr::kable(t_r2_6)  
 ```
-**Table XX. Heterogeneity of effect size and model goodness-of-fit**
+**Table XX. Model goodness-of-fit**
 
 ```{r}
 
@@ -914,8 +895,17 @@ mr_cons <- rma.mv(yi = lnRR,
                 data = dat)
 
 summary(mr_cons)
+
 r2_ml(mr_cons)
 
+bubble_plot(mr_cons,
+            mod = "Log_area",
+            group = "Study_ID",
+            xlab = "Log-transformed area")
+
+```
+
+```{r}
 ```
 
 ```{r}
