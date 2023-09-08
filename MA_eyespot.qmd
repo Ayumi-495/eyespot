@@ -905,8 +905,6 @@ bubble_plot(mr_cons,
 
 ```
 
-```{r}
-```
 
 ```{r}
 mr_cons_1 <- rma.mv(yi = lnRR,
@@ -961,7 +959,7 @@ Also, how do I number sub-captions correctly?
 
 # funnel plot - standard error
 funnel(ma_all, yaxis = "sei", 
-      xlab = "Standarized residuals",
+      xlab = "Standarised residuals",
       ylab = "Precision (inverse of SE)" )
 
 # funnel plot - inverse of standard error
@@ -1096,44 +1094,50 @@ bubble_plot(mr_background,
 #| label: fig-galary1
 #| fig-cap: "Discrete moderators"
 #| include: false
-#| 
+
+# overall effect
 p1 <- orchard_plot(ma_all,
                     group = "Study_ID",
                     xlab = "log response ratio (lnRR)", 
                     angle = 45,
-                    legend.pos = "top.left") + 
+                    legend.pos = "bottom.right") + 
                     scale_x_discrete(labels = c("Overall effect")) + 
-                    theme(legend.direction = "vertical",
+                    theme(legend.direction = "horizontal",
                     legend.text = element_text(size = 6)) +
                     
                     scale_colour_okabe_ito()+
                     scale_fill_okabe_ito()
-p1
+
+#eyespot vs. conspicuous patterns
 p2 <- orchard_plot(mr_eyespot,
                   mod = "Treatment_stimulus",
                   group = "Study_ID",
                   xlab = "log response ratio (lnRR)",
                   angle = 45,
-                  legend.pos = "top.left") + 
-                  theme(legend.direction = "vertical",
+                  legend.pos = "bottom.right") +
+                  theme(legend.direction = "horizontal",
                   legend.text = element_text(size = 6)) +
                   scale_colour_okabe_ito(order = 2:3)+
                   scale_fill_okabe_ito(order = 2:3)
-
+p2
+# prey type - real vs. artificial
 p3 <- orchard_plot(mr_prey_type,
                   mod = "Type_prey",
                   group = "Study_ID",
                   xlab = "log response ratio (lnRR)",
                   angle = 45,
-                  legend.pos = "top.left") +
-                  theme(legend.direction = "vertical",
+                  legend.pos = "bottom.right") +
+                  theme(legend.direction = "horizontal",
                   legend.text = element_text(size = 6))+ 
                   scale_colour_okabe_ito(order = 4:5) +
                   scale_fill_okabe_ito(order = 4:5)
 
+# combine
 patch1 <- p1 | (p2 / p3)
 patch1 + plot_annotation(tag_levels = "a")
-ggsave("fig1.pdf", width = 10, height = 5, dpi = 450)
+
+# output figure as pdf
+# ggsave("fig1.pdf", width = 10, height = 5, dpi = 450)
 
 ```
 ![Figure - discrete moderators](figs/fig1.png)
@@ -1144,27 +1148,33 @@ ggsave("fig1.pdf", width = 10, height = 5, dpi = 450)
 #| fig-cap: "Continuous moderators"
 #| include: false
 
-p4 <- bubble_plot(mr_area,
+# these figs were created by multi meta-regression model results
+# log-transformed area
+p4 <- bubble_plot(mr_cons,
                   mod = "Log_area",
                   group = "Study_ID",
                   xlab = "Log-transformed area") +
                   scale_x_continuous(breaks = seq(0,7,1.5)) +
                   scale_y_continuous(breaks = seq(-2.5, 4.5, 1.5))
 
-p5 <- bubble_plot(mr_num,
+# number of patterns
+p5 <- bubble_plot(mr_cons,
             mod = "Number_pattern",
             group = "Study_ID",
             xlab = "Number of patterns") +
                   scale_x_continuous(breaks = seq(0,11,1.5)) +
                   scale_y_continuous(breaks = seq(-2.5, 4.5, 1.5))
 
+# combine
 p4 / p5 + plot_annotation(tag_levels = "a")
-ggsave("fig2.pdf", width = 10, height = 10, dpi = 450)
+
+# output figure as pdf
+# ggsave("fig2_multi.pdf", width = 10, height = 10, dpi = 450)
 ```
 ![Figure - continuous moderators](figs/fig2.png)
 
 ### Publication bias
-I got error message when I used `ggdraw()` function. I need to ask this later.
+
 ```{r}
 #| label: fig-galary3
 #| fig-cap: "Publication bias"
@@ -1174,14 +1184,21 @@ I got error message when I used `ggdraw()` function. I need to ask this later.
 #| layout-ncol: 2
 #| include: false
 
-funnel(ma_all, yaxis = "seinv", 
-xlab = "Standarized residuals",
-ylab = "Precision (inverse of SE)",
-xlim = c(-3.0, 4.5), 
-ylim = c(0.8, 80), 
-col = c(alpha("mediumvioletred", 0.5)),
-cex = 0.7)
+# funnel plot
 
+# pdf("fig3.pdf")
+
+funnel(ma_all, yaxis = "seinv", 
+      xlab = "Standarised residuals",
+      ylab = "Precision (inverse of SE)",
+      xlim = c(-4.0, 4.5), 
+      ylim = c(0.01, 80.0), 
+      col = c(alpha("mediumvioletred", 0.5)),
+      cex = 0.7)
+
+# dev.off()
+
+# Egger's test and decline effect
 p7 <- bubble_plot(bias_model,
             mod = "sqrt_inv_e_n",
             group = "Study_ID",
@@ -1193,21 +1210,16 @@ p8 <- bubble_plot(year_model,
             group = "Study_ID",
             xlab = "Year of publication") +  scale_y_continuous(breaks = seq(-2.5, 4.0, 1.5)) 
 
-pub_b <- p7 / p8
-pub_b +  plot_annotation(tag_levels = 'a') 
+# combine plots created by bubble_plot()
+pub <- p7 / p8
+pub_b <- pub +  plot_annotation(tag_levels = 'a') 
 
-ggsave("fig4.pdf", width = 10, height = 10, dpi = 450)
+# output figure as pdf
+# ggsave("fig4.pdf", width = 10, height = 10, dpi = 450)
 
 ```
+![Figure - publication bias](figs/fig3.png)
 
-:::{layout-ncol=2}
-![fig.3](figs/fig3.png)
-
-![fig.4](figs/fig4.png)
-
-Publication bias
-:::
-:::
 
 ## R session infomation
 ```{r}
