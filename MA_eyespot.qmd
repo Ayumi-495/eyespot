@@ -19,7 +19,7 @@ format:
     max-width: "10"
     code-overflow: wrap
     df_print: paged
-    theme: minty
+    theme: flatly
     code-line-numbers: false　　　
 crossref: 
   fig-title: Figure     # (default is "Figure")
@@ -38,11 +38,12 @@ execute:
 
 ## Setting ups
 Load packages and custum function.
-Custum function is used for calculating effect size (lnRR) and its variance from raw data.
+Custom function is used for calculating effect size (lnRR) and its variance from raw data.
 
 ```{r}
 
 pacman::p_load(ape,
+               GoodmanKruskal,
                DT,
                ggokabeito,
                ggcorrplot,
@@ -53,8 +54,7 @@ pacman::p_load(ape,
                metafor,
                miWQS,
                orchaRd,
-               parallel,
-               uncoveR)
+               parallel)
 
 # function for calculating effect size (lnRR)
 effect_lnRR <- function(dt) {
@@ -62,17 +62,14 @@ effect_lnRR <- function(dt) {
   # if proportion too extreme value, replace minimum value (only "T_proportion")
 
   dt <- dt %>%
-    mutate(C_mean = ifelse(C_mean == 0, 0.04, C_mean))
-  dt <- dt %>%
-    mutate(T_sd = ifelse(T_sd == 0, 0.01, T_sd))
-  dt <- dt %>%
-    mutate(C_sd = ifelse(C_sd == 0, 0.05, C_sd))
-  dt <- dt %>%
-    mutate(C_proportion = ifelse(C_proportion == 0, 0.01, C_proportion))
-  dt <- dt %>%
-    mutate(T_proportion = ifelse(T_proportion < 0.01, 0.01, T_proportion))
-  dt <- dt %>%
-    mutate(T_proportion = ifelse(T_proportion  == 1, 0.9, T_proportion))
+  mutate(
+    C_mean = ifelse(C_mean == 0, 0.04, C_mean),
+    T_sd = ifelse(T_sd == 0, 0.01, T_sd),
+    C_sd = ifelse(C_sd == 0, 0.05, C_sd),
+    C_proportion = ifelse(C_proportion == 0, 0.01, C_proportion),
+    T_proportion = ifelse(T_proportion < 0.01, 0.01, T_proportion),
+    T_proportion = ifelse(T_proportion == 1, 0.9, T_proportion)
+  )
     
   # copy dataset for adding effect size and its variation (lnRR /lnRR_var) column
   dt1 <- dt %>%
@@ -126,7 +123,7 @@ effect_lnRR <- function(dt) {
     # proportion data (no sd values)
     else if (Response == "proportion1" & Study_design == "independent") {
       
-      T_proportion <- replace(
+    T_proportion <- replace(
         T_proportion, Direction == "Decrease",
         (1 - T_proportion[Direction == "Decrease"])
       )
@@ -186,7 +183,7 @@ effect_lnRR <- function(dt) {
     # proportion data (exist sd values)
     else if (Response == "proportion2" & Study_design == "independent") {
       
-        T_proportion <- replace(
+      T_proportion <- replace(
         T_proportion, Direction == "Decrease",
         (1 - T_proportion[Direction == "Decrease"])
       )
@@ -201,8 +198,8 @@ effect_lnRR <- function(dt) {
         trans
       }
 
-      T_SD <- T_sd^2 / (4 * (T_proportion) * (1 - (T_proportion)))
-      C_SD <- C_sd^2 / (4 * (C_proportion) * (1 - (C_proportion)))
+      T_SD <- sqrt(T_sd^2 / (4 * (T_proportion) * (1 - (T_proportion))))
+      C_SD <- sqrt(C_sd^2 / (4 * (C_proportion) * (1 - (C_proportion))))
 
       T_proportion <- asin_trans(T_proportion)
       C_proportion <- asin_trans(C_proportion)
@@ -217,7 +214,7 @@ effect_lnRR <- function(dt) {
 
     } else if (Response == "proportion2" & Study_design == "dependent") {
       
-        T_proportion <- replace(
+      T_proportion <- replace(
         T_proportion, Direction == "Decrease",
         (1 - T_proportion[Direction == "Decrease"])
       )
@@ -232,8 +229,8 @@ effect_lnRR <- function(dt) {
         trans
       }
 
-      T_SD <- T_sd^2 / (4 * (T_proportion) * (1 - (T_proportion)))
-      C_SD <- C_sd^2 / (4 * (C_proportion) * (1 - (C_proportion)))
+      T_SD <- sqrt(T_sd^2 / (4 * (T_proportion) * (1 - (T_proportion))))
+      C_SD <- sqrt(C_sd^2 / (4 * (C_proportion) * (1 - (C_proportion))))
 
       T_proportion <- asin_trans(T_proportion)
       C_proportion <- asin_trans(C_proportion)
@@ -294,7 +291,10 @@ dat <- effect_lnRR(dat_all)
 dat_pred$Obs_ID <- 1:nrow(dat_pred)
 dat$Obs_ID <- 1:nrow(dat)
 
-# the data of diamete, area, and background are log-transformed because it is skew data
+hist(dat$lnRR)
+hist(dat$lnRR_var)
+
+# the data of diameter, area, and background are log-transformed because it is skew data
 dat$Log_diameter <- log(dat$Diameter_pattern)
 dat$Log_area <- log(dat$Area_pattern)
 dat$Log_background <- log(dat$Area_background)
@@ -708,9 +708,8 @@ Our dataset includes 4 types of prey type: real butterfly, abstract butterfly, a
 
 mr_prey_shape <- rma.mv(yi = lnRR,
                         V = VCV, 
-                        mods = ~ Shape_prey - 1,
+                        mods = ~ Shape_prey -1,
                         random = list(~1 | Study_ID,
-                                      ~1 | Shared_control_ID,
                                       ~1 | Obs_ID),
                                       test = "t",
                                       method = "REML", 
@@ -718,6 +717,9 @@ mr_prey_shape <- rma.mv(yi = lnRR,
                                       data = dat)
 
 summary(mr_prey_shape)
+# library(multcomp)
+# # Perform post-hoc tests on the estimated coefficients
+# mc <- glht(mr_prey_shape, linfct = mcp(Shape_prey = "Tukey"))
 
 r2_6 <- round(r2_ml(mr_prey_shape), 4)
 ```
@@ -775,10 +777,11 @@ p1 + p2 +plot_layout(guides = 'collect')
 dat1 <- dat %>%
   select(Treatment_stimulus, Type_prey, Shape_prey)
 
-assocMatrix(dat1)
+corr_cat <- GKtauDataframe(dat1)
+plot(corr_cat)
 
 ```
-ASK Why y-axis is shown "NA"?
+We should not include "Shape_prey" and "Type_prey" in the model at the same time. Because they are correlated.
 
 ### Choose moderators
 We used model R2 values to find better model and modelator VIF values to check multicollinearity between moderators. 
@@ -814,7 +817,6 @@ r2_ml(r2_diameter)
 ```
 It seems **area** is a better predictor than **diameter** .
 
-#### VIF
 ```{r}
 
 vif_1 <- rma.mv(yi = lnRR,
@@ -942,8 +944,6 @@ r2_ml(mr_pre)
 :::
 
 ## Publication bias
-ASK: Is this correct?
-Also, how do I number sub-captions correctly?
 
 :::{.panel-tabset}
 
@@ -966,15 +966,6 @@ funnel(ma_all, yaxis = "sei",
 f2 <- funnel(ma_all, yaxis = "seinv", 
       xlab = "Standarized residuals",
       ylab = "Precision (inverse of SE)",  col = c(alpha("orange", 0.5)))
-
-# Cut outliners (cut out plots with a value of 80 or more)　I think this is better…
-f3 <- funnel(ma_all, yaxis = "seinv", 
-      xlab = "Standarized residuals",
-      ylab = "Precision (inverse of SE)",
-      xlim = c(-4,4), 
-      ylim = c(0.8, 80), 
-      col = c(alpha("mediumvioletred", 0.5)))
-
 ```
 
 ### Egger's test
@@ -1093,7 +1084,7 @@ bubble_plot(mr_background,
 ```{r}
 #| label: fig-galary1
 #| fig-cap: "Discrete moderators"
-#| include: false
+
 
 # overall effect
 p1 <- orchard_plot(ma_all,
@@ -1119,7 +1110,7 @@ p2 <- orchard_plot(mr_eyespot,
                   legend.text = element_text(size = 6)) +
                   scale_colour_okabe_ito(order = 2:3)+
                   scale_fill_okabe_ito(order = 2:3)
-p2
+                  
 # prey type - real vs. artificial
 p3 <- orchard_plot(mr_prey_type,
                   mod = "Type_prey",
@@ -1140,13 +1131,13 @@ patch1 + plot_annotation(tag_levels = "a")
 # ggsave("fig1.pdf", width = 10, height = 5, dpi = 450)
 
 ```
-![Figure - discrete moderators](figs/fig1.png)
+![Figure - discrete moderators]
 
 ### Continuous moderators
 ```{r}
 #| label: fig-galary2
 #| fig-cap: "Continuous moderators"
-#| include: false
+
 
 # these figs were created by multi meta-regression model results
 # log-transformed area
@@ -1171,7 +1162,7 @@ p4 / p5 + plot_annotation(tag_levels = "a")
 # output figure as pdf
 # ggsave("fig2_multi.pdf", width = 10, height = 10, dpi = 450)
 ```
-![Figure - continuous moderators](figs/fig2.png)
+![Figure - continuous moderators]
 
 ### Publication bias
 
@@ -1182,7 +1173,6 @@ p4 / p5 + plot_annotation(tag_levels = "a")
 #|    - "Funnel plot"
 #|    - "Egger's test and Decline effect"
 #| layout-ncol: 2
-#| include: false
 
 # funnel plot
 
@@ -1212,13 +1202,13 @@ p8 <- bubble_plot(year_model,
 
 # combine plots created by bubble_plot()
 pub <- p7 / p8
-pub_b <- pub +  plot_annotation(tag_levels = 'a') 
+pub +  plot_annotation(tag_levels = 'a') 
 
 # output figure as pdf
 # ggsave("fig4.pdf", width = 10, height = 10, dpi = 450)
 
 ```
-![Figure - publication bias](figs/fig3.png)
+![Figure - publication bias]
 
 
 ## R session infomation
@@ -1228,3 +1218,6 @@ pub_b <- pub +  plot_annotation(tag_levels = 'a')
 sessionInfo() %>% pander::pander()
 
 ```
+:::
+
+
