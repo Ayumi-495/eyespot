@@ -8,17 +8,14 @@ effect_lnRR <- function(dt) {
   # if proportion too extreme value, replace minimum value (only "T_proportion")
 
   dt <- dt %>%
-    mutate(C_mean = ifelse(C_mean == 0, 0.04, C_mean))
-  dt <- dt %>%
-    mutate(T_sd = ifelse(T_sd == 0, 0.01, T_sd))
-  dt <- dt %>%
-    mutate(C_sd = ifelse(C_sd == 0, 0.05, C_sd))
-  dt <- dt %>%
-    mutate(C_proportion = ifelse(C_proportion == 0, 0.01, C_proportion))
-  dt <- dt %>%
-    mutate(T_proportion = ifelse(T_proportion < 0.01, 0.01, T_proportion))
-  dt <- dt %>%
-    mutate(T_proportion = ifelse(T_proportion  == 1, 0.9, T_proportion))
+  mutate(
+    C_mean = ifelse(C_mean == 0, 0.04, C_mean),
+    T_sd = ifelse(T_sd == 0, 0.01, T_sd),
+    C_sd = ifelse(C_sd == 0, 0.05, C_sd),
+    C_proportion = ifelse(C_proportion == 0, 0.01, C_proportion),
+    T_proportion = ifelse(T_proportion < 0.01, 0.01, T_proportion),
+    T_proportion = ifelse(T_proportion == 1, 0.9, T_proportion)
+  )
     
   # copy dataset for adding effect size and its variation (lnRR /lnRR_var) column
   dt1 <- dt %>%
@@ -71,7 +68,8 @@ effect_lnRR <- function(dt) {
 
     # proportion data (no sd values)
     else if (Response == "proportion1" & Study_design == "independent") {
-      T_proportion <- replace(
+      
+    T_proportion <- replace(
         T_proportion, Direction == "Decrease",
         (1 - T_proportion[Direction == "Decrease"])
       )
@@ -98,6 +96,7 @@ effect_lnRR <- function(dt) {
       dt1$lnRR_var[i] <- lnRR_var_pro1
 
     } else if (Response == "proportion1" & Study_design == "dependent") {
+      
       T_proportion <- replace(
         T_proportion, Direction == "Decrease",
         (1 - T_proportion[Direction == "Decrease"])
@@ -130,6 +129,15 @@ effect_lnRR <- function(dt) {
     # proportion data (exist sd values)
     else if (Response == "proportion2" & Study_design == "independent") {
       
+      T_proportion <- replace(
+        T_proportion, Direction == "Decrease",
+        (1 - T_proportion[Direction == "Decrease"])
+      )
+      C_proportion <- replace(
+        C_proportion, Direction == "Decrease",
+        (1 - C_proportion[Direction == "Decrease"])
+      )
+      
       # transform proportion mean value
       asin_trans <- function(proportion) {
         trans <- asin(sqrt(proportion))
@@ -151,6 +159,16 @@ effect_lnRR <- function(dt) {
       dt1$lnRR_var[i] <- lnRR_var_pro2
 
     } else if (Response == "proportion2" & Study_design == "dependent") {
+      
+      T_proportion <- replace(
+        T_proportion, Direction == "Decrease",
+        (1 - T_proportion[Direction == "Decrease"])
+      )
+      C_proportion <- replace(
+        C_proportion, Direction == "Decrease",
+        (1 - C_proportion[Direction == "Decrease"])
+      )
+      
       # transform proportion mean value
       asin_trans <- function(proportion) {
         trans <- asin(sqrt(proportion))
