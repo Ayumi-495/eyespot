@@ -136,8 +136,8 @@ effect_lnRR <- function(dt) {
         trans
       }
 
-      T_SD <- T_sd^2 / (4 * (T_proportion) * (1 - (T_proportion)))
-      C_SD <- C_sd^2 / (4 * (C_proportion) * (1 - (C_proportion)))
+      T_SD <- sqrt(T_sd^2 / (4 * (T_proportion) * (1 - (T_proportion))))
+      C_SD <- sqrt(C_sd^2 / (4 * (C_proportion) * (1 - (C_proportion))))
 
       T_proportion <- asin_trans(T_proportion)
       C_proportion <- asin_trans(C_proportion)
@@ -157,8 +157,8 @@ effect_lnRR <- function(dt) {
         trans
       }
 
-      T_SD <- T_sd^2 / (4 * (T_proportion) * (1 - (T_proportion)))
-      C_SD <- C_sd^2 / (4 * (C_proportion) * (1 - (C_proportion)))
+      T_SD <- sqrt(T_sd^2 / (4 * (T_proportion) * (1 - (T_proportion))))
+      C_SD <- sqrt(C_sd^2 / (4 * (C_proportion) * (1 - (C_proportion))))
 
       T_proportion <- asin_trans(T_proportion)
       C_proportion <- asin_trans(C_proportion)
