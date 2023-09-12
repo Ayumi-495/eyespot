@@ -19,7 +19,7 @@ format:
     max-width: "10"
     code-overflow: wrap
     df_print: paged
-    theme: flatly
+    theme: minty
     code-line-numbers: false　　　
 crossref: 
   fig-title: Figure     # (default is "Figure")
@@ -298,7 +298,6 @@ hist(dat$lnRR_var)
 dat$Log_diameter <- log(dat$Diameter_pattern)
 dat$Log_area <- log(dat$Area_pattern)
 dat$Log_background <- log(dat$Area_background)
-
 
 # use vcalc to calculate variance-covariance matrix
 VCV_pred <- vcalc(vi = lnRR_var, 
@@ -1131,7 +1130,6 @@ patch1 + plot_annotation(tag_levels = "a")
 # ggsave("fig1.pdf", width = 10, height = 5, dpi = 450)
 
 ```
-![Figure - discrete moderators]
 
 ### Continuous moderators
 ```{r}
@@ -1162,7 +1160,6 @@ p4 / p5 + plot_annotation(tag_levels = "a")
 # output figure as pdf
 # ggsave("fig2_multi.pdf", width = 10, height = 10, dpi = 450)
 ```
-![Figure - continuous moderators]
 
 ### Publication bias
 
@@ -1208,7 +1205,6 @@ pub +  plot_annotation(tag_levels = 'a')
 # ggsave("fig4.pdf", width = 10, height = 10, dpi = 450)
 
 ```
-![Figure - publication bias]
 
 
 ## R session infomation
