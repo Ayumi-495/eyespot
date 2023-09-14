@@ -610,7 +610,6 @@ mr_num <- rma.mv(yi = lnRR,
                   V = VCV,
                   mods = ~ Number_pattern,
                   random = list(~1 | Study_ID,
-                                ~1 | Shared_control_ID,
                                 ~1 | Obs_ID),
                       test = "t",
                       method = "REML",
@@ -702,8 +701,6 @@ summary(mr_prey_type1)
 Our dataset includes 4 types of prey type: real butterfly, abstract butterfly, artificial prey. Is there significant difference of effect size between two stimuli?
 
 ```{r}
-#| label: fig-shape
-#| fig-cap: "Effect size and prey shape"
 
 mr_prey_shape <- rma.mv(yi = lnRR,
                         V = VCV, 
@@ -732,6 +729,8 @@ knitr::kable(t_r2_6)
 **Table XX. Model goodness-of-fit**
 
 ```{r}
+#| label: fig-shape
+#| fig-cap: "Effect size and prey shape"
 
 orchard_plot(mr_prey_shape,
               mod = "Shape_prey",
