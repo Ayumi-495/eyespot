@@ -47,6 +47,7 @@ Custom function is used for calculating effect size (lnRR) and its variance from
 pacman::p_load(ape,
                GoodmanKruskal,
                DT,
+               dtplyr,
                ggokabeito,
                ggcorrplot,
                here, 
@@ -55,6 +56,7 @@ pacman::p_load(ape,
                patchwork,
                metafor,
                miWQS,
+               multcomp,
                orchaRd,
                parallel)
 
@@ -665,8 +667,8 @@ bubble_plot(pred_mr_num,
 ```
 
 
-### Stimuli type
-Our dataset includes two types of stimuli: live and artificial. Is there significant difference of effect size between two stimuli?
+### Prey material type
+Our dataset includes two material types of prey: live and artificial. Is there significant difference of effect size between two stimuli?
 ```{r}
 #| label: fig-stimuli_pred
 #| fig-cap: "Effect size and prey type - real vs. artificial"
@@ -725,7 +727,7 @@ summary(pred_mr_prey_type1)
 ```
 
 ### Prey shape type
-Our dataset includes 4 types of prey type: real butterfly, abstract butterfly, artificial prey. Is there significant difference of effect size between two stimuli?
+Our dataset includes 4 types of prey type: real butterfly, abstract butterfly, abstract caterpillar, and abstract prey. Is there significant difference of effect size between two stimuli?
 
 ```{r}
 
@@ -797,8 +799,9 @@ pred_p1 + pred_p2 +plot_layout(guides = 'collect')
 #| label: fig-cor-categorical_pred
 #| fig-cap: "Correlation between categorical variables"
 
+summary(dt_pred$Treatment_stimulus)
 pred_dat1 <- dt_pred %>%
-  select(Treatment_stimulus, Type_prey, Shape_prey)
+  dplyr::select("Treatment_stimulus", "Type_prey", "Shape_prey")
 
 pred_corr_cat <- GKtauDataframe(pred_dat1)
 plot(pred_corr_cat)
@@ -1435,8 +1438,8 @@ bubble_plot(prey_mr_num,
 ```
 
 
-### Stimuli type
-Our dataset includes two types of stimuli: live and artificial. Is there significant difference of effect size between two stimuli?
+### Prey material type
+Our dataset includes two material types of prey: live and artificial. Is there significant difference of effect size between two stimuli?
 ```{r}
 #| label: fig-stimuli_prey
 #| fig-cap: "Effect size and prey type - real vs. artificial"
@@ -1497,7 +1500,7 @@ summary(prey_mr_prey_type1)
 ```
 
 ### Prey shape type
-Our dataset includes 4 types of prey type: real butterfly, abstract butterfly, artificial prey. Is there significant difference of effect size between two stimuli?
+Our dataset includes 4 types of prey type: real butterfly, abstract butterfly, abstract caterpillar, and abstract prey. Is there significant difference of effect size between two stimuli?
 
 ```{r}
 
@@ -1571,7 +1574,7 @@ prey_p1 + prey_p2 +plot_layout(guides = 'collect')
 #| fig-cap: "Correlation between categorical variables"
 
 prey_dat1 <- dt_prey %>%
-  select(Treatment_stimulus, Type_prey, Shape_prey)
+  dplyr::select("Treatment_stimulus", "Type_prey", "Shape_prey")
 
 prey_corr_cat <- GKtauDataframe(prey_dat1)
 plot(prey_corr_cat)
@@ -2216,8 +2219,8 @@ bubble_plot(mr_num,
 ```
 
 
-### Stimuli type
-Our dataset includes two types of stimuli: live and artificial. Is there significant difference of effect size between two stimuli?
+### Prey material type
+Our dataset includes two material types of prey: live and artificial. Is there significant difference of effect size between two stimuli?
 ```{r}
 #| label: fig-stimuli
 #| fig-cap: "Effect size and prey type - real vs. artificial"
@@ -2274,7 +2277,7 @@ summary(mr_prey_type1)
 ```
 
 ### Prey shape type
-Our dataset includes 4 types of prey type: real butterfly, abstract butterfly, artificial prey. Is there significant difference of effect size between two stimuli?
+Our dataset includes 4 types of prey type: real butterfly, abstract butterfly, abstract caterpillar, and abstract prey. Is there significant difference of effect size between two stimuli?
 
 ```{r}
 
@@ -2291,6 +2294,17 @@ mr_prey_shape <- rma.mv(yi = lnRR,
 summary(mr_prey_shape)
 
 r2_6 <- round(r2_ml(mr_prey_shape), 4)
+
+dat_all$Shape_prey <- factor(dat_all$Shape_prey)
+levels(dat_all$Shape_prey)
+
+mat_ex <- 
+    cbind(contrMat(rep(1,
+                       length(mr_prey_shape$ci.ub)),
+                   type = "Tukey"))
+sig_test <- summary(glht(mr_prey_shape, linfct= mat_ex), test = adjusted("none"))
+
+sig_test
 ```
 
 ```{r}
@@ -2346,7 +2360,7 @@ p1 + p2 +plot_layout(guides = 'collect')
 #| fig-cap: "Correlation between categorical variables"
 
 dat1 <- dt_all %>%
-  select(Treatment_stimulus, Type_prey, Shape_prey)
+  dplyr::select("Treatment_stimulus", "Type_prey", "Shape_prey")
 
 corr_cat <- GKtauDataframe(dat1)
 plot(corr_cat)
@@ -2553,6 +2567,33 @@ bubble_plot(year_model,
 
 ```
 
+### Multi-moderator
+```{r}
+
+multi_bias <- rma.mv(yi = lnRR,
+                      V = VCV, 
+                      mods = ~sqrt_inv_e_n + Year,
+                      random = list(~1 | Study_ID,
+                                    ~1 | Obs_ID),
+                      test = "t",
+                      method = "REML", 
+                      sparse = TRUE,
+                      data = df_bias)
+
+summary(multi_bias)
+
+bubble_plot(multi_bias,
+            mod = "sqrt_inv_e_n",
+            group = "Study_ID",
+            xlab = "Square root of inverse of effective sample size")
+
+bubble_plot(multi_bias,
+            mod = "Year",
+            group = "Study_ID",
+            xlab = "Year of publication")
+
+```
+
 :::
 
 ## Additional analyses
@@ -2601,6 +2642,9 @@ mr_background <- rma.mv(yi = lnRR,
                         data = dt_all)
 
 summary(mr_background)
+
+r2_ml(mr_background)
+
 
 bubble_plot(mr_background,
             mod = "Log_background",
