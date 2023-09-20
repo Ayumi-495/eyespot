@@ -1978,10 +1978,6 @@ prey_pub +  plot_annotation(tag_levels = 'a')
 ```
 
 
-
-
-
-
 # Meta-analysis - all dataset
 
 We used meta-analytical models to calculate total I2 (a measure of heterogeneity not caused by sampling error; Higgins. et al., 2003) and the partial I2 explained by each random factor.
