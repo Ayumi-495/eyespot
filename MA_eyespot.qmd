@@ -266,13 +266,13 @@ First, we used a predator dataset to check whether we need to consider phylogene
 #| label: tbl-dataset
 #| tbl-cap: "Predator dataset"
 
-dat_all <-  read.csv(here("data/all_15082023.csv"), header = T, fileEncoding = "CP932")
+dat_all <-  read.csv(here("data/all_21092023.csv"), header = T, fileEncoding = "CP932")
 dat_pred <- filter(dat_all, Dataset == "predator")
 dat_prey <- filter(dat_all, Dataset == "prey")
 
-datatable(dat_pred, caption = "Predator datasets", options = list(pageLength = 10, scrollX = TRUE))
+datatable(dat_all, caption = "all dataset", options = list(pageLength = 10, scrollX = TRUE))
 ```
-**Table 1 - Predator datasets**
+**Table 1 - Predator + prey datasets**
 
 
 ```{r}
@@ -327,6 +327,13 @@ VCV <- vcalc(vi = lnRR_var,
              obs = Obs_ID,
              rho = 0.5,
              data = dt_all)
+
+dt_pred <- dt_pred %>%
+  mutate_if(is.character, as.factor)
+dt_prey <- dt_prey %>%
+  mutate_if(is.character, as.factor)
+dt_all <- dt_all %>%
+  mutate_if(is.character, as.factor)
 
 summary(dt_pred)
 summary(dt_prey)
@@ -2214,6 +2221,32 @@ bubble_plot(mr_num,
 
 ```
 
+### Background area (mm²)
+```{r}
+#| label: fig-background
+#| fig-cap: "Effect size and background area"
+
+mr_background <- rma.mv(yi = lnRR,
+                        V = VCV, 
+                        mods = ~ Log_background,
+                        random = list(~1 | Study_ID,
+                                      ~1 | Obs_ID),
+                        test = "t",
+                        method = "REML",
+                        sparse = TRUE,
+                        data = dt_all)
+
+summary(mr_background)
+
+r2_ml(mr_background)
+
+
+bubble_plot(mr_background,
+            mod = "Log_background",
+            group = "Study_ID",
+            xlab = "Log-transformed backgroud")
+
+```
 
 ### Prey material type
 Our dataset includes two material types of prey: live and artificial. Is there significant difference of effect size between two stimuli?
@@ -2593,7 +2626,6 @@ bubble_plot(multi_bias,
 :::
 
 ## Additional analyses
-:::{.panel-tabset}
 
 ### Dataset
 We compared effect size between two datasets (predator and prey) to see whether there is any difference in effect size between two datasets.
@@ -2622,33 +2654,7 @@ orchard_plot(mr_dataset,
 
 ```
 
-### Background area (mm²)
-```{r}
-#| label: fig-background
-#| fig-cap: "Effect size and background area"
 
-mr_background <- rma.mv(yi = lnRR,
-                        V = VCV, 
-                        mods = ~ Log_background,
-                        random = list(~1 | Study_ID,
-                                      ~1 | Obs_ID),
-                        test = "t",
-                        method = "REML",
-                        sparse = TRUE,
-                        data = dt_all)
-
-summary(mr_background)
-
-r2_ml(mr_background)
-
-
-bubble_plot(mr_background,
-            mod = "Log_background",
-            group = "Study_ID",
-            xlab = "Log-transformed backgroud")
-
-```
-:::
 
 
 ## Figure galary
@@ -2658,7 +2664,6 @@ bubble_plot(mr_background,
 ```{r}
 #| label: fig-galary1
 #| fig-cap: "Discrete moderators"
-
 
 # overall effect
 p1 <- orchard_plot(ma_all,
@@ -2714,7 +2719,7 @@ patch1 + plot_annotation(tag_levels = "a")
 
 # these figs were created by multi meta-regression model results
 # log-transformed area
-p4 <- bubble_plot(mr_cons,
+p4 <- bubble_plot(mr_area,
                   mod = "Log_area",
                   group = "Study_ID",
                   xlab = "Log-transformed area") +
@@ -2722,7 +2727,7 @@ p4 <- bubble_plot(mr_cons,
                   scale_y_continuous(breaks = seq(-2.5, 4.5, 1.5))
 
 # number of patterns
-p5 <- bubble_plot(mr_cons,
+p5 <- bubble_plot(mr_num,
             mod = "Number_pattern",
             group = "Study_ID",
             xlab = "Number of patterns") +
@@ -2733,7 +2738,7 @@ p5 <- bubble_plot(mr_cons,
 p4 / p5 + plot_annotation(tag_levels = "a")
 
 # output figure as pdf
-# ggsave("fig2_multi.pdf", width = 10, height = 10, dpi = 450)
+ggsave("fig2_multi.pdf", dpi = 450, units = "mm")
 ```
 
 ### Publication bias
