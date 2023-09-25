@@ -1028,7 +1028,7 @@ bubble_plot(pred_year_model,
 
 pred_bias_all <- rma.mv(yi = lnRR,
                       V = VCV_pred, 
-                      mods = ~ 1 + sqrt_inv_e_n + Year,
+                      mods = ~ Treatment_stimulus + Log_area + Number_pattern + Type_prey+ sqrt_inv_e_n + Year,
                       random = list(~1 | Shared_control_ID,
                                 ~1 | Cohort_ID,
                                 ~1 | Obs_ID),
@@ -1809,7 +1809,7 @@ bubble_plot(prey_year_model,
 
 prey_bias_all <- rma.mv(yi = lnRR,
                       V = VCV_prey, 
-                      mods = ~ 1 + sqrt_inv_e_n + Year,
+                      mods = ~ Treatment_stimulus + Log_area + Number_pattern + Type_prey+ sqrt_inv_e_n + Year,
                       random = list(~1 | Study_ID,
                                 ~1 | Shared_control_ID,
                                 ~1 | Cohort_ID,
@@ -2601,7 +2601,9 @@ bubble_plot(year_model,
 
 multi_bias <- rma.mv(yi = lnRR,
                       V = VCV, 
-                      mods = ~sqrt_inv_e_n + Year,
+                      mods = ~ Treatment_stimulus + Log_area 
+                             + Number_pattern + Type_prey
+                             + sqrt_inv_e_n + Year,
                       random = list(~1 | Study_ID,
                                     ~1 | Obs_ID),
                       test = "t",
