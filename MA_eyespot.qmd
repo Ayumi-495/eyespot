@@ -58,7 +58,8 @@ pacman::p_load(ape,
                miWQS,
                multcomp,
                orchaRd,
-               parallel)
+               parallel,
+               RColorBrewer)
 
 # function for calculating effect size (lnRR)
 effect_lnRR <- function(dt) {
@@ -264,7 +265,7 @@ First, we used a predator dataset to check whether we need to consider phylogene
 
 ```{r}
 #| label: tbl-dataset
-#| tbl-cap: "Predator dataset"
+#| tbl-cap: "All dataset"
 
 dat_all <-  read.csv(here("data/all_21092023.csv"), header = T, fileEncoding = "CP932")
 dat_pred <- filter(dat_all, Dataset == "predator")
@@ -338,12 +339,11 @@ dt_all <- dt_all %>%
 summary(dt_pred)
 summary(dt_prey)
 summary(dt_all)
-
 ```
 
 
 ### Final dataset for meta-analysis
-I cannot attach the caption to `datatable()` format table. I need to use `kable()` format table?
+
 ```{r}
 #| label: all dataset
 #| tbl-cap: "Our datasets included predator and prey datasets"
@@ -2142,6 +2142,7 @@ bubble_plot(mr_diameter,
             group = "Study_ID",
             xlab = "Log-transformed diameter")
 
+# ggsave("figS_diameter.pdf", width = 10, height = 10, dpi = 450)
 ```
 
 ### Pattern area (mm²)
@@ -2245,7 +2246,7 @@ bubble_plot(mr_background,
             mod = "Log_background",
             group = "Study_ID",
             xlab = "Log-transformed backgroud")
-
+ggsave("figS_background.pdf", width = 10, height = 10, dpi = 450)
 ```
 
 ### Prey material type
@@ -2356,7 +2357,10 @@ orchard_plot(mr_prey_shape,
               scale_colour_okabe_ito(order = 6:9)+
               scale_fill_okabe_ito(order = 6:9)
 
+ggsave("fig-shape.pdf", width = 10, height = 10, dpi = 450)
+
 ```
+
 
 :::
 
@@ -2454,6 +2458,8 @@ mr_all <- rma.mv(yi = lnRR,
                 data = dt_all)
 
 summary(mr_all)
+summary_all_output <- capture.output(summary(mr_all))
+writeLines(summary_all_output, "summary_all.csv")
 
 r2_ml(mr_all)
 ```
@@ -2473,7 +2479,9 @@ mr_cons <- rma.mv(yi = lnRR,
                 sparse = TRUE,
                 data = dt_all)
 
-summary(mr_cons)
+summary_cons <- summary(mr_cons)
+summary_cons_output <- capture.output(summary_cons)
+writeLines(summary_cons_output, "summary_cons.csv")
 
 r2_ml(mr_cons)
 
@@ -2672,13 +2680,17 @@ p1 <- orchard_plot(ma_all,
                     group = "Study_ID",
                     xlab = "log response ratio (lnRR)", 
                     angle = 45,
+                    alpha = 0.4,
+                    # trank.size = 3, 
+                    # branch.size = 1.2,
                     legend.pos = "bottom.right") + 
                     scale_x_discrete(labels = c("Overall effect")) + 
                     theme(legend.direction = "horizontal",
                     legend.text = element_text(size = 6)) +
-                    
-                    scale_colour_okabe_ito()+
-                    scale_fill_okabe_ito()
+                    scale_colour_manual(values = "indianred1")+
+                    scale_fill_manual(values = "indianred1")
+
+# ggsave("fig1.pdf", width = 15, height = 5, dpi = 450)
 
 #eyespot vs. conspicuous patterns
 p2 <- orchard_plot(mr_eyespot,
@@ -2689,9 +2701,11 @@ p2 <- orchard_plot(mr_eyespot,
                   legend.pos = "bottom.right") +
                   theme(legend.direction = "horizontal",
                   legend.text = element_text(size = 6)) +
-                  scale_colour_okabe_ito(order = 2:3)+
-                  scale_fill_okabe_ito(order = 2:3)
-                  
+                  scale_colour_brewer(palette = "Pastel1") +
+                  scale_fill_brewer(palette = "Pastel1") 
+              
+# ggsave("fig2.pdf", width = 15, height = 5, dpi = 450)
+
 # prey type - real vs. artificial
 p3 <- orchard_plot(mr_prey_type,
                   mod = "Type_prey",
@@ -2701,16 +2715,31 @@ p3 <- orchard_plot(mr_prey_type,
                   legend.pos = "bottom.right") +
                   theme(legend.direction = "horizontal",
                   legend.text = element_text(size = 6))+ 
-                  scale_colour_okabe_ito(order = 4:5) +
-                  scale_fill_okabe_ito(order = 4:5)
+                  scale_colour_brewer(palette = "Accent", direction = - 1) +
+                  scale_fill_brewer(palette = "Accent", direction = - 1)
+
+# ggsave("fig3.pdf", width = 15, height = 5, dpi = 450)
 
 # combine
 patch1 <- p1 | (p2 / p3)
 patch1 + plot_annotation(tag_levels = "a")
 
 # output figure as pdf
-# ggsave("fig1.pdf", width = 10, height = 5, dpi = 450)
+ggsave("fig1_2.pdf", width = 15, height = 7, dpi = 450)
 
+p4 <- orchard_plot(mr_prey_shape,
+                  mod = "Shape_prey",
+                  group = "Study_ID",
+                  xlab = "log response ratio (lnRR)",
+                  angle = 45,
+                  legend.pos = "bottom.right") +
+                  theme(legend.direction = "horizontal",
+                  legend.text = element_text(size = 6)) +
+                  scale_colour_brewer(palette = "YlGnBu") +
+                  scale_fill_brewer(palette = "YlGnBu")
+p4
+
+# ggsave("figS_shape.pdf", width = 15, height = 10, dpi = 450)
 ```
 
 ### Continuous moderators
@@ -2721,26 +2750,46 @@ patch1 + plot_annotation(tag_levels = "a")
 
 # these figs were created by multi meta-regression model results
 # log-transformed area
-p4 <- bubble_plot(mr_area,
+p5 <- bubble_plot(mr_area,
                   mod = "Log_area",
                   group = "Study_ID",
-                  xlab = "Log-transformed area") +
+                  xlab = "Log-transformed area",
+                  est.lwd = 1.2,
+                  est.col = "deeppink3") +
                   scale_x_continuous(breaks = seq(0,7,1.5)) +
-                  scale_y_continuous(breaks = seq(-2.5, 4.5, 1.5))
+                  scale_y_continuous(breaks = seq(-3.0, 4.5, 1.0))
 
 # number of patterns
-p5 <- bubble_plot(mr_num,
+p6 <- bubble_plot(mr_num,
             mod = "Number_pattern",
             group = "Study_ID",
-            xlab = "Number of patterns") +
-                  scale_x_continuous(breaks = seq(0,11,1.5)) +
-                  scale_y_continuous(breaks = seq(-2.5, 4.5, 1.5))
+            xlab = "Number of patterns",
+            est.lwd = 1.2,
+            est.col = "turquoise4") +
+      scale_x_continuous(breaks = seq(0,11,2)) +
+      scale_y_continuous(breaks = seq(-3.0, 4.5, 1.0))
 
 # combine
-p4 / p5 + plot_annotation(tag_levels = "a")
+p5 / p6 + plot_annotation(tag_levels = "a")
 
 # output figure as pdf
-ggsave("fig2_multi.pdf", dpi = 450, units = "mm")
+# ggsave("fig2_multi.pdf", width = 10, height =10,  dpi = 450)
+
+# diameter
+p7 <- bubble_plot(mr_diameter,
+            mod = "Log_diameter",
+            group = "Study_ID",
+            xlab = "Log-transformed diameter")
+
+# background
+p8 <- bubble_plot(mr_background,
+            mod = "Log_background",
+            group = "Study_ID",
+            xlab = "Log-transformed total prey surface area")
+
+p7 / p8 + plot_annotation(tag_levels = "a")
+
+# ggsave("figS_dimsurface.pdf", width = 10, height = 10, dpi = 450)
 ```
 
 ### Publication bias
@@ -2768,25 +2817,49 @@ funnel(ma_all, yaxis = "seinv",
 # dev.off()
 
 # Egger's test and decline effect
-p7 <- bubble_plot(bias_model,
+p9 <- bubble_plot(bias_model,
             mod = "sqrt_inv_e_n",
             group = "Study_ID",
             xlab = "Square root of inverse of effective sample size") +
             scale_y_continuous(breaks = seq(-2.5, 4.5, 1.5)) 
 
-p8 <- bubble_plot(year_model,
+p10 <- bubble_plot(year_model,
             mod = "Year",
             group = "Study_ID",
             xlab = "Year of publication") +  scale_y_continuous(breaks = seq(-2.5, 4.0, 1.5)) 
 
 # combine plots created by bubble_plot()
-pub <- p7 / p8
+pub <- p9 / p10
 pub +  plot_annotation(tag_levels = 'a') 
 
 # output figure as pdf
 # ggsave("fig4.pdf", width = 10, height = 10, dpi = 450)
 
 ```
+
+### Publication bias (multi-moderator)
+```{r}
+#| label: fig-galary4
+#| fig-cap: "Publication bias (multi-moderator)"
+#| fig-subcap:
+#|    - "Egger's test and Decline effect (multi-moderator)"
+
+p11 <- bubble_plot(multi_bias,
+            mod = "sqrt_inv_e_n",
+            group = "Study_ID",
+            xlab = "Square root of inverse of effective sample size")
+
+p12 <- bubble_plot(multi_bias,
+            mod = "Year",
+            group = "Study_ID",
+            xlab = "Year of publication")
+
+p11 / p12 +  plot_annotation(tag_levels = 'a')
+
+# ggsave("figS_pub.pdf", width = 10, height = 10, dpi = 450)
+
+```
+
 :::
 
 # R session infomation
@@ -2796,5 +2869,3 @@ pub +  plot_annotation(tag_levels = 'a')
 sessionInfo() %>% pander::pander()
 
 ```
-
-
