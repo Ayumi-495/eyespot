@@ -303,11 +303,14 @@ dt_prey$Log_area <- log(dt_prey$Area_pattern)
 dt_prey$Log_background <- log(dt_prey$Area_background)
 
 # all dataset
+
 dt_all <- effect_lnRR(dat_all)
+dt_all$area_pattern_T  <- dt_all$Area_pattern * dt_all$Number_pattern
 dt_all$Obs_ID <- 1:nrow(dt_all)
 dt_all$Log_diameter <- log(dt_all$Diameter_pattern)
 dt_all$Log_area <- log(dt_all$Area_pattern)
 dt_all$Log_background <- log(dt_all$Area_background)
+dt_all$Log_area_pattern_T  <- log(dt_all$Area_pattern * dt_all$Number_pattern)
 
 hist(dt_all$lnRR)
 hist(dt_all$lnRR_var)
@@ -2183,6 +2186,37 @@ bubble_plot(mr_area,
 
 ```
 
+### Total pattern area (mm²)
+```{r}
+mr_area_T  <- rma.mv(yi = lnRR,
+                  V = VCV, 
+                  mods = ~ Log_area_pattern_T ,
+                  random = list(~1 | Study_ID,
+                                ~1 | Obs_ID),
+                  test = "t",
+                  method = "REML", 
+                  sparse = TRUE,
+                  data = dt_all)
+
+summary(mr_area_T)
+r2_3_1 <- round(r2_ml(mr_area_T), 4)
+```
+
+```{r}
+#| echo: false
+
+t_r2_3_1 <- t(r2_3_1)
+knitr::kable(t_r2_3_1)  
+```
+**Table XX. Model goodness-of-fit**
+
+```{r}
+bubble_plot(mr_area_T,
+            mod = "Log_area_pattern_T ",
+            group = "Study_ID",
+            xlab = "Log-transformed pattern total area")
+```
+
 ### Pattern number
 
 ```{r}
@@ -2377,15 +2411,15 @@ Area, diameter and background seem to be correlated. We visualised the correlati
 #| fig-cap: "Correlation between coninuous moderators"
 
 # correlation between continuous variables
-corr_cont <- round(cor(dt_all[, c("Diameter_pattern", "Area_pattern", "Number_pattern", "Area_background")]),2)
+corr_cont <- round(cor(dt_all[, c("Diameter_pattern", "Area_pattern", "Number_pattern","Log_area_pattern_T ", "Area_background")]),2)
 
 p1 <- ggcorrplot(corr_cont, hc.order = TRUE, lab = TRUE, outline.col = "white", colors = c("#6D9EC1", "white", "#E46726"), title = "(a) Continuous variables")
 
-corr_cont_log <- round(cor(dt_all[, c("Log_diameter", "Log_area", "Number_pattern", "Log_background")]),2)
+corr_cont_log <- round(cor(dt_all[, c("Log_diameter", "Log_area", "Number_pattern","Log_area_pattern_T ", "Log_background")]),2)
 
 p2 <- ggcorrplot(corr_cont_log, hc.order = TRUE, lab = TRUE, outline.col = "white", colors = c("#6D9EC1", "white", "#E46726"), title = "(b) Log-transormed continuous variables")
 
-p1 + p2 +plot_layout(guides = 'collect')
+p1 + p2 + plot_layout(guides = 'collect')
 ```
 
 ```{r}
@@ -2418,6 +2452,16 @@ r2_area <- rma.mv(yi = lnRR,
                   sparse = TRUE,
                   data = dt_all)
 
+r2_area_T <- rma.mv(yi = lnRR,
+                  V = VCV,
+                  mods = ~ Log_area_pattern_T + Number_pattern,
+                  random = list(~1 | Study_ID,
+                                ~1 | Obs_ID),
+                  test = "t",
+                  method = "REML",
+                  sparse = TRUE,
+                  data = dt_all)
+
 r2_diameter <- rma.mv(yi = lnRR,
                       V = VCV,
                       mods = ~ Log_diameter + Number_pattern,
@@ -2430,10 +2474,11 @@ r2_diameter <- rma.mv(yi = lnRR,
 
 # check r2 values
 r2_ml(r2_area)
+r2_ml(r2_area_T)
 r2_ml(r2_diameter)
 
 ```
-It seems **area** is a better predictor than **diameter** .
+It seems **pattern total area** is a better predictor than **diameter**?.
 
 :::
 
@@ -2458,14 +2503,29 @@ mr_all <- rma.mv(yi = lnRR,
                 data = dt_all)
 
 summary(mr_all)
-summary_all_output <- capture.output(summary(mr_all))
-writeLines(summary_all_output, "summary_all.csv")
 
 r2_ml(mr_all)
+
+```
+
+Total patern area
+```{r}
+mr_all_2 <- rma.mv(yi = lnRR,
+                V = VCV, 
+                mods = ~ Treatment_stimulus + Log_area_pattern_T 
+                + Number_pattern + Type_prey,
+                random = list(~1 | Study_ID,
+                              ~1 | Obs_ID),
+                test = "t",
+                method = "REML", 
+                sparse = TRUE,
+                data = dt_all)
+summary(mr_all_2)
+
 ```
 
 ### Moderators associated with conspicuousness
-Only include moderators related to conspicuousness (pattern area and number of patterns) in the model.
+Only include moderators related to conspicuousness (pattern are/total area and number of patterns) in the model.
 
 ```{r}
 
@@ -2486,15 +2546,39 @@ writeLines(summary_cons_output, "summary_cons.csv")
 r2_ml(mr_cons)
 
 bubble_plot(mr_cons,
-            mod = "Log_area",
+            mod = "Number_pattern",
             group = "Study_ID",
             xlab = "Log-transformed area")
 
 ```
+```{r}
+mr_cons1 <- rma.mv(yi = lnRR,
+                V = VCV, 
+                mods = ~ Log_area_pattern_T + Number_pattern,
+                random = list(~1 | Study_ID,
+                              ~1 | Obs_ID),
+                test = "t",
+                method = "REML", 
+                sparse = TRUE,
+                data = dt_all)
+
+summary(mr_cons1)
+
+bubble_plot(mr_cons1,
+            mod = "Log_area_pattern_T",
+            group = "Study_ID",
+            xlab = "Log-transformed area")
+bubble_plot(mr_cons1,
+            mod = "Number_pattern",
+            group = "Study_ID",
+            xlab = "Log-transformed area")
+
+r2_ml(mr_cons1)
+```
 
 
 ```{r}
-mr_cons_1 <- rma.mv(yi = lnRR,
+mr_cons2 <- rma.mv(yi = lnRR,
                 V = VCV, 
                 mods = ~ Log_area + Number_pattern + Treatment_stimulus,
                 random = list(~1 | Study_ID,
@@ -2504,10 +2588,26 @@ mr_cons_1 <- rma.mv(yi = lnRR,
                 sparse = TRUE,
                 data = dt_all)
 
-summary(mr_cons_1)
+summary(mr_cons2)
 
-r2_ml(mr_cons_1)
+r2_ml(mr_cons2)
 
+```
+
+```{r}
+mr_cons3 <- rma.mv(yi = lnRR,
+                V = VCV, 
+                mods = ~ Log_area_pattern_T + Number_pattern + Treatment_stimulus,
+                random = list(~1 | Study_ID,
+                              ~1 | Obs_ID),
+                test = "t",
+                method = "REML", 
+                sparse = TRUE,
+                data = dt_all)
+
+summary(mr_cons3)
+
+r2_ml(mr_cons3)
 ```
 
 ### Moderators associated with prey
@@ -2664,9 +2764,6 @@ orchard_plot(mr_dataset,
 
 ```
 
-
-
-
 ## Figure galary
 :::{.panel-tabset}
 
@@ -2718,8 +2815,23 @@ p3 <- orchard_plot(mr_prey_type,
                   scale_colour_brewer(palette = "Accent", direction = - 1) +
                   scale_fill_brewer(palette = "Accent", direction = - 1)
 
-# ggsave("fig3.pdf", width = 15, height = 5, dpi = 450)
 
+main  <- mod_results(ma_all, group = "Study_ID")
+pattern <- mod_results(mr_eyespot, mod = "Treatment_stimulus", group = "Study_ID")
+
+comb <- submerge(main, pattern)
+# ggsave("fig3.pdf", width = 15, height = 5, dpi = 450)
+comb_p <- orchard_plot(comb,
+                    group = "Study_ID",
+                    xlab = "log response ratio (lnRR)",
+                    angle = 45,
+                    branch.size = 3) +
+                    theme(legend.direction = "horizontal",
+                    legend.text = element_text(size = 6)) +
+                    scale_colour_brewer(palette = "Pastel1") +
+                    scale_fill_brewer(palette = "Pastel1")   
+
+comb_p
 # combine
 patch1 <- p1 | (p2 / p3)
 patch1 + plot_annotation(tag_levels = "a")
