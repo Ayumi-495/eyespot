@@ -2212,7 +2212,7 @@ knitr::kable(t_r2_3_1)
 
 ```{r}
 bubble_plot(mr_area_T,
-            mod = "Log_area_pattern_T ",
+            mod = "Log_area_pattern_T",
             group = "Study_ID",
             xlab = "Log-transformed pattern total area")
 ```
@@ -2409,13 +2409,14 @@ Area, diameter and background seem to be correlated. We visualised the correlati
 ```{r}
 #| label: fig-cor-continuous
 #| fig-cap: "Correlation between coninuous moderators"
-
+#| fig-width: 10
+#| fig-height: 10
 # correlation between continuous variables
-corr_cont <- round(cor(dt_all[, c("Diameter_pattern", "Area_pattern", "Number_pattern","Log_area_pattern_T ", "Area_background")]),2)
+corr_cont <- round(cor(dt_all[, c("Diameter_pattern", "Area_pattern", "Number_pattern","Log_area_pattern_T", "Area_background")]),2)
 
 p1 <- ggcorrplot(corr_cont, hc.order = TRUE, lab = TRUE, outline.col = "white", colors = c("#6D9EC1", "white", "#E46726"), title = "(a) Continuous variables")
 
-corr_cont_log <- round(cor(dt_all[, c("Log_diameter", "Log_area", "Number_pattern","Log_area_pattern_T ", "Log_background")]),2)
+corr_cont_log <- round(cor(dt_all[, c("Log_diameter", "Log_area", "Number_pattern","Log_area_pattern_T", "Log_background")]),2)
 
 p2 <- ggcorrplot(corr_cont_log, hc.order = TRUE, lab = TRUE, outline.col = "white", colors = c("#6D9EC1", "white", "#E46726"), title = "(b) Log-transormed continuous variables")
 
