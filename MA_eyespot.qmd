@@ -433,6 +433,979 @@ Only 50 trees are used as in [Nakagawa & Villemereuil (2019)](https://doi.org/10
 
 :::
 :::
+
+# Meta-analysis - all dataset
+
+We used meta-analytical models to calculate total I2 (a measure of heterogeneity not caused by sampling error; Higgins. et al., 2003) and the partial I2 explained by each random factor.
+
+::: callout-note
+## Which random effects remove in our models?
+
+We can remove _Shared control ID_ and _Cohort ID_
+:::
+
+```{r}
+# I exclude cohort_ID because sigma^2.2 = 0 and I2 = 0
+ma_all <- rma.mv(yi = lnRR,
+                  V = VCV, 
+                  random = list(~1 | Study_ID,
+                                ~1 | Shared_control_ID,
+                                ~1 | Cohort_ID,
+                                ~1 | Obs_ID),
+                  test = "t",
+                  method = "REML", 
+                  sparse = TRUE,
+                  data = dt_all)
+
+summary(ma_all)
+i2 <- round(i2_ml(ma_all), 4)
+r2 <- round(r2_ml(ma_all), 4)
+```
+
+```{r}
+#| echo: false
+t_i2 <- t(i2)
+t_r2 <- t(r2)
+knitr::kable(t_i2)
+knitr::kable(t_r2)
+```
+**Table 3 - Heterogeneity of effect size**
+
+```{r}
+#| label: fig-ma_all
+#| fig-cap: "Estimates of overall effect size and 95% confidence intervals"
+#| fig-cap-location: bottom
+
+orchard_plot(ma_all,
+              group = "Study_ID",
+              xlab = "log response ratio (lnRR)", 
+              angle = 45) + 
+              scale_x_discrete(labels = c("Overall effect")) + 
+              scale_colour_okabe_ito()+
+              scale_fill_okabe_ito()
+
+```
+
+## Meta-regressions: uni-moderator
+
+:::{.panel-tabset}
+
+### Pattern type
+Eyespot vs. conspicuous patterns - Is there significant difference of effect size between two patterns?
+
+```{r}
+
+#normal model
+mr_eyespot <- rma.mv(yi = lnRR,
+                    V = VCV, 
+                    mods = ~ Treatment_stimulus,
+                    random = list(~1 | Study_ID,
+                                  ~1 | Obs_ID),
+                    test = "t",
+                    method = "REML", 
+                    sparse = TRUE,
+                    data = dt_all)
+
+summary(mr_eyespot)
+
+r2_1 <- round(r2_ml(mr_eyespot), 4)
+```
+
+```{r}
+#| echo: false
+
+t_r2_1 <- t(r2_1)
+knitr::kable(t_r2_1)  
+```
+**Table XX. Model goodness-of-fit**
+
+```{r}
+
+# intercept-removed model
+mr_eyespot1 <- rma.mv(yi = lnRR,
+                      V = VCV, 
+                      mods = ~ Treatment_stimulus -1,
+                      random = list(~1 | Study_ID,
+                                    ~1 | Obs_ID),
+                      test = "t",
+                      method = "REML", 
+                      sparse = TRUE,
+                      data = dt_all)
+
+summary(mr_eyespot1)
+
+```
+
+```{r}
+#| label: fig-eyespot
+#| fig-cap: "Eyespot vs. conspicuous patterns"
+
+orchard_plot(mr_eyespot,
+            mod = "Treatment_stimulus",
+            group = "Study_ID",
+            xlab = "log response ratio (lnRR)",
+            angle = 45) + 
+            scale_colour_okabe_ito(order = 2:3)+
+            scale_fill_okabe_ito(order = 2:3)
+
+```
+
+
+### Pattern diameter (mm) 
+
+```{r}
+#| label: fig-diameter
+#| fig-cap: "Effect size and pattern diameter"
+
+mr_diameter <- rma.mv(yi = lnRR,
+                      V = VCV, 
+                      mods = ~ Log_diameter,
+                      random = list(~1 | Study_ID,
+                                    ~1 | Obs_ID),
+                      test = "t",
+                      method = "REML", 
+                      sparse = TRUE,
+                      data = dt_all)
+
+summary(mr_diameter)
+
+
+r2_2 <- round(r2_ml(mr_diameter), 4)
+```
+
+```{r}
+#| echo: false
+
+
+t_r2_2 <- t(r2_2)
+knitr::kable(t_r2_2)  
+```
+**Table XX. Model goodness-of-fit**
+
+```{r}
+
+bubble_plot(mr_diameter,
+            mod = "Log_diameter",
+            group = "Study_ID",
+            xlab = "Log-transformed diameter")
+
+# ggsave("figS_diameter.pdf", width = 10, height = 10, dpi = 450)
+```
+
+### Pattern area (mm²)
+
+```{r}
+#| label: fig-area
+#| fig-cap: "Effect size and pattern area"
+
+mr_area <- rma.mv(yi = lnRR,
+                  V = VCV, 
+                  mods = ~ Log_area,
+                  random = list(~1 | Study_ID,
+                                ~1 | Obs_ID),
+                  test = "t",
+                  method = "REML", 
+                  sparse = TRUE,
+                  data = dt_all)
+
+summary(mr_area)
+
+r2_3 <- round(r2_ml(mr_area), 4)
+```
+
+```{r}
+#| echo: false
+
+t_r2_3 <- t(r2_3)
+knitr::kable(t_r2_3)  
+```
+**Table XX. Model goodness-of-fit**
+
+```{r}
+
+bubble_plot(mr_area,
+            mod = "Log_area",
+            group = "Study_ID",
+            xlab = "Log-transformed area")
+
+```
+
+### Pattern number
+```{r}
+#| label: fig-number
+#| fig-cap: "Effect size and number of patterns"
+
+mr_num <- rma.mv(yi = lnRR,
+                  V = VCV,
+                  mods = ~ Number_pattern,
+                  random = list(~1 | Study_ID,
+                                ~1 | Obs_ID),
+                      test = "t",
+                      method = "REML",
+                      sparse = TRUE,
+                      data = dt_all)
+
+summary(mr_num)
+
+r2_4 <- round(r2_ml(mr_num), 4)
+```
+
+```{r}
+#| echo: false
+
+t_r2_4 <- t(r2_4)
+knitr::kable(t_r2_4)  
+```
+
+**Table XX. Model goodness-of-fit**
+  
+```{r}
+
+bubble_plot(mr_num,
+            mod = "Number_pattern",
+            group = "Study_ID",
+            xlab = "Number of patterns") 
+
+```
+
+### Prey material type
+Our dataset includes two material types of prey: live and artificial. Is there significant difference of effect size between two stimuli?
+```{r}
+#| label: fig-stimuli
+#| fig-cap: "Effect size and prey type - real vs. artificial"
+
+# normal model
+mr_prey_type <- rma.mv(yi = lnRR,
+                  V = VCV, 
+                  mods = ~ Type_prey,
+                  random = list(~1 | Study_ID,
+                                ~1 | Obs_ID),
+                  test = "t",
+                  method = "REML", 
+                  sparse = TRUE,
+                  data = dt_all)
+
+summary(mr_prey_type)
+
+r2_5 <- round(r2_ml(mr_prey_type), 4)
+
+```
+
+```{r}
+#| echo: false
+
+t_r2_5 <- t(r2_5)
+knitr::kable(t_r2_5)
+
+```
+**Table XX. Model goodness-of-fit**
+
+```{r}
+
+orchard_plot(mr_prey_type,
+              mod = "Type_prey",
+              group = "Study_ID",
+              xlab = "Type of prey",
+              angle = 45) +
+            scale_colour_okabe_ito(order = 4:5)+
+            scale_fill_okabe_ito(order = 4:5)
+
+
+# intercept-removed model
+mr_prey_type1 <- rma.mv(yi = lnRR,
+                        V = VCV, 
+                        mods = ~ Type_prey -1,
+                        random = list(~1 | Study_ID,
+                                      ~1 | Obs_ID),
+                        test = "t",
+                        method = "REML", 
+                        sparse = TRUE,
+                        data = dt_all)
+
+summary(mr_prey_type1)
+```
+:::
+
+## Correlation visualisation and choose moderators
+Before we run multi-moderator meta-regressions, we need to consider the correlation between moderators.
+Area, diameter and background seem to be correlated. We visualised the correlation between these variables.
+
+:::{.panel-tabset}
+
+### Visualisation of correlation
+
+```{r}
+#| label: fig-cor-continuous
+#| fig-cap: "Correlation between coninuous moderators"
+#| fig-width: 10
+#| fig-height: 5
+
+# correlation between continuous variables
+corr_cont <- round(cor(dt_all[, c("Diameter_pattern", "Area_pattern", "Number_pattern","Log_area_pattern_T", "Area_background")]),2)
+
+p1 <- ggcorrplot(corr_cont, hc.order = TRUE, lab = TRUE, outline.col = "white", colors = c("#6D9EC1", "white", "#E46726"), title = "(a) Continuous variables")
+
+corr_cont_log <- round(cor(dt_all[, c("Log_diameter", "Log_area", "Number_pattern","Log_area_pattern_T", "Log_background")]),2)
+
+p2 <- ggcorrplot(corr_cont_log, hc.order = TRUE, lab = TRUE, outline.col = "white", colors = c("#6D9EC1", "white", "#E46726"), title = "(b) Log-transormed continuous variables")
+
+p1 + p2 + plot_layout(guides = 'collect')
+```
+
+```{r}
+#| label: fig-cor-categorical
+#| fig-cap: "Correlation between categorical variables"
+
+dat1 <- dt_all %>%
+  dplyr::select("Treatment_stimulus", "Type_prey", "Shape_prey")
+
+corr_cat <- GKtauDataframe(dat1)
+plot(corr_cat)
+
+```
+We should not include "Shape_prey" and "Type_prey" in the model at the same time. Because they are correlated.
+
+### Choose moderators
+We used model R2 values to find better model and modelator VIF values to check multicollinearity between moderators. 
+Higher R2 indicates better model and VIF > 2 indicates multicollinearity. 
+
+#### R2
+```{r}
+
+r2_area <- rma.mv(yi = lnRR,
+                  V = VCV,
+                  mods = ~ Log_area + Number_pattern,
+                  random = list(~1 | Study_ID,
+                                ~1 | Obs_ID),
+                  test = "t",
+                  method = "REML",
+                  sparse = TRUE,
+                  data = dt_all)
+
+r2_area_T <- rma.mv(yi = lnRR,
+                  V = VCV,
+                  mods = ~ Log_area_pattern_T + Number_pattern,
+                  random = list(~1 | Study_ID,
+                                ~1 | Obs_ID),
+                  test = "t",
+                  method = "REML",
+                  sparse = TRUE,
+                  data = dt_all)
+
+r2_diameter <- rma.mv(yi = lnRR,
+                      V = VCV,
+                      mods = ~ Log_diameter + Number_pattern,
+                      random = list(~1 | Study_ID,
+                                    ~1 | Obs_ID),
+                      test = "t",
+                      method = "REML",
+                      sparse = TRUE,
+                      data = dt_all)
+
+# check r2 values
+r2_ml(r2_area)
+r2_ml(r2_area_T)
+r2_ml(r2_diameter)
+
+```
+It seems **pattern total area** is a slightly better predictor than **diameter**?.
+
+:::
+
+## Meta-regressions: multi-moderator
+
+:::{.panel-tabset}
+
+### All potential moderators (full model)
+Include all moderators in the model.
+
+```{r}
+
+mr_all <- rma.mv(yi = lnRR,
+                V = VCV, 
+                mods = ~ Treatment_stimulus + Log_area 
+                + Number_pattern + Type_prey,
+                random = list(~1 | Study_ID,
+                              ~1 | Obs_ID),
+                test = "t",
+                method = "REML", 
+                sparse = TRUE,
+                data = dt_all)
+
+summary(mr_all)
+
+r2_ml(mr_all)
+
+```
+
+Total patern area
+```{r}
+mr_all_2 <- rma.mv(yi = lnRR,
+                V = VCV, 
+                mods = ~ Treatment_stimulus + Log_area_pattern_T 
+                + Number_pattern + Type_prey,
+                random = list(~1 | Study_ID,
+                              ~1 | Obs_ID),
+                test = "t",
+                method = "REML", 
+                sparse = TRUE,
+                data = dt_all)
+summary(mr_all_2)
+
+```
+
+### Moderators associated with conspicuousness
+Only include moderators related to conspicuousness (pattern area/total pattern area and number of patterns) in the model.
+
+```{r}
+
+mr_cons <- rma.mv(yi = lnRR,
+                V = VCV, 
+                mods = ~ Log_area + Number_pattern,
+                random = list(~1 | Study_ID,
+                              ~1 | Obs_ID),
+                test = "t",
+                method = "REML", 
+                sparse = TRUE,
+                data = dt_all)
+
+r2_ml(mr_cons)
+
+bubble_plot(mr_cons,
+            mod = "Number_pattern",
+            group = "Study_ID",
+            xlab = "Log-transformed area")
+
+```
+```{r}
+mr_cons1 <- rma.mv(yi = lnRR,
+                V = VCV, 
+                mods = ~ Log_area_pattern_T + Number_pattern,
+                random = list(~1 | Study_ID,
+                              ~1 | Obs_ID),
+                test = "t",
+                method = "REML", 
+                sparse = TRUE,
+                data = dt_all)
+
+summary(mr_cons1)
+
+bubble_plot(mr_cons1,
+            mod = "Log_area_pattern_T",
+            group = "Study_ID",
+            xlab = "Log-transformed area")
+
+r2_ml(mr_cons1)
+```
+
+
+```{r}
+mr_cons2 <- rma.mv(yi = lnRR,
+                V = VCV, 
+                mods = ~ Log_area + Number_pattern + Treatment_stimulus,
+                random = list(~1 | Study_ID,
+                              ~1 | Obs_ID),
+                test = "t",
+                method = "REML", 
+                sparse = TRUE,
+                data = dt_all)
+
+summary(mr_cons2)
+
+r2_ml(mr_cons2)
+
+```
+
+```{r}
+mr_cons3 <- rma.mv(yi = lnRR,
+                V = VCV, 
+                mods = ~ Log_area_pattern_T + Number_pattern + Treatment_stimulus,
+                random = list(~1 | Study_ID,
+                              ~1 | Obs_ID),
+                test = "t",
+                method = "REML", 
+                sparse = TRUE,
+                data = dt_all)
+
+summary(mr_cons3)
+
+r2_ml(mr_cons3)
+```
+
+### Moderators associated with prey
+```{r}
+mr_pre <- rma.mv(yi = lnRR,
+                V = VCV, 
+                mods = ~ Treatment_stimulus + Type_prey,
+                random = list(~1 | Study_ID,
+                              ~1 | Obs_ID),
+                test = "t",
+                method = "REML", 
+                sparse = TRUE,
+                data = dt_all)
+
+summary(mr_pre)
+
+r2_ml(mr_pre)
+```
+:::
+
+## Publication bias
+
+:::{.panel-tabset}
+
+### Funnel plot
+```{r}
+#| layout-ncol: 2
+#| label: fig-funnel
+#| fig-cap: "Funnel plot of effect size and its standard error"
+#| fig-subcap: 
+#|   - "Effect size and its standard error"
+#|   - "Effect size and its inverse standard error"
+
+# funnel plot - standard error
+funnel(ma_all, yaxis = "sei", 
+      xlab = "Standarised residuals",
+      ylab = "Precision (inverse of SE)" )
+
+# funnel plot - inverse of standard error
+f2 <- funnel(ma_all, yaxis = "seinv", 
+      xlab = "Standarized residuals",
+      ylab = "Precision (inverse of SE)",  col = c(alpha("orange", 0.5)))
+```
+
+### Egger's test
+```{r}
+#| label: fig-egger
+#| fig-cap: "Egger's test of publication bias"
+
+df_bias <- dt_all %>% mutate(sqrt_inv_e_n = sqrt((Cn + Tn)/(Cn * Tn)))
+
+bias_model <- rma.mv(yi = lnRR,
+                      V = lnRR_var, 
+                      mods = ~ 1 + sqrt_inv_e_n,
+                      random = list(~1 | Study_ID,
+                                    ~1 | Obs_ID),
+                      test = "t",
+                      method = "REML", 
+                      sparse = TRUE,
+                      data = df_bias)
+
+summary(bias_model)
+
+bubble_plot(bias_model,
+            mod = "sqrt_inv_e_n",
+            group = "Study_ID",
+            xlab = "Square root of inverse of effective sample size")
+
+```
+
+### Decline effect
+```{r}
+#| label: fig-decline
+#| fig-cap: "Decline effect"
+
+year_model <- rma.mv(yi = lnRR,
+                      V = VCV, 
+                      mods = ~  1 + Year,
+                      random = list(~1 | Study_ID,
+                                    ~1 | Obs_ID),
+                      test = "t",
+                      method = "REML", 
+                      sparse = TRUE,
+                      data = df_bias)
+
+summary(year_model)
+
+bubble_plot(year_model,
+            mod = "Year",
+            group = "Study_ID",
+            xlab = "Year of publication")
+
+```
+
+### Multi-moderator
+```{r}
+
+multi_bias <- rma.mv(yi = lnRR,
+                      V = VCV, 
+                      mods = ~ Treatment_stimulus + Log_area 
+                             + Number_pattern + Type_prey
+                             + sqrt_inv_e_n + Year,
+                      random = list(~1 | Study_ID,
+                                    ~1 | Obs_ID),
+                      test = "t",
+                      method = "REML", 
+                      sparse = TRUE,
+                      data = df_bias)
+
+summary(multi_bias)
+
+bubble_plot(multi_bias,
+            mod = "sqrt_inv_e_n",
+            group = "Study_ID",
+            xlab = "Square root of inverse of effective sample size")
+
+bubble_plot(multi_bias,
+            mod = "Year",
+            group = "Study_ID",
+            xlab = "Year of publication")
+
+```
+
+:::
+
+## Additional analyses
+
+:::{.panel-tabset}
+### Dataset
+We compared effect size between two datasets (predator and prey) to see whether there is any difference in effect size between two datasets.
+```{r}
+#| label: fig-dataset
+#| fig-cap: "Effect size and dataset - predator and prey"
+
+mr_dataset <- rma.mv(yi = lnRR,
+                      V = VCV,
+                      mods = ~ Dataset,
+                      random = list(~1 | Study_ID,
+                                    ~1 | Obs_ID),
+                      test = "t",
+                      method = "REML",
+                      sparse = TRUE,
+                      data = dt_all)
+
+summary(mr_dataset)
+
+orchard_plot(mr_dataset,
+            mod = "Dataset",
+            group = "Study_ID",
+            xlab = "Dataset", 
+            angle = 45) 
+
+```
+
+### Total pattern area (mm²)
+```{r}
+mr_area_T  <- rma.mv(yi = lnRR,
+                  V = VCV, 
+                  mods = ~ Log_area_pattern_T ,
+                  random = list(~1 | Study_ID,
+                                ~1 | Obs_ID),
+                  test = "t",
+                  method = "REML", 
+                  sparse = TRUE,
+                  data = dt_all)
+
+summary(mr_area_T)
+r2_3_1 <- round(r2_ml(mr_area_T), 4)
+```
+
+```{r}
+#| echo: false
+
+t_r2_3_1 <- t(r2_3_1)
+knitr::kable(t_r2_3_1)  
+```
+**Table XX. Model goodness-of-fit**
+
+```{r}
+bubble_plot(mr_area_T,
+            mod = "Log_area_pattern_T",
+            group = "Study_ID",
+            xlab = "Log-transformed pattern total area")
+```
+
+### Background area (mm²)
+```{r}
+#| label: fig-background
+#| fig-cap: "Effect size and background area"
+
+mr_background <- rma.mv(yi = lnRR,
+                        V = VCV, 
+                        mods = ~ Log_background,
+                        random = list(~1 | Study_ID,
+                                      ~1 | Obs_ID),
+                        test = "t",
+                        method = "REML",
+                        sparse = TRUE,
+                        data = dt_all)
+
+summary(mr_background)
+
+r2_ml(mr_background)
+
+
+bubble_plot(mr_background,
+            mod = "Log_background",
+            group = "Study_ID",
+            xlab = "Log-transformed backgroud")
+```
+
+### Prey shape type
+Our dataset includes 4 types of prey type: real butterfly, abstract butterfly, abstract caterpillar, and abstract prey. Is there significant difference of effect size between two stimuli?
+
+```{r}
+
+mr_prey_shape <- rma.mv(yi = lnRR,
+                        V = VCV, 
+                        mods = ~ Shape_prey -1,
+                        random = list(~1 | Study_ID,
+                                      ~1 | Obs_ID),
+                                      test = "t",
+                                      method = "REML", 
+                                      sparse = TRUE,
+                                      data = dt_all)
+
+summary(mr_prey_shape)
+
+r2_6 <- round(r2_ml(mr_prey_shape), 4)
+
+dat_all$Shape_prey <- factor(dat_all$Shape_prey)
+levels(dat_all$Shape_prey)
+
+mat_ex <- 
+    cbind(contrMat(rep(1,
+                       length(mr_prey_shape$ci.ub)),
+                   type = "Tukey"))
+sig_test <- summary(glht(mr_prey_shape, linfct= mat_ex), test = adjusted("none"))
+
+sig_test
+```
+
+```{r}
+#| echo: false
+
+t_r2_6 <- t(r2_6)
+knitr::kable(t_r2_6)  
+```
+**Table XX. Model goodness-of-fit**
+
+```{r}
+#| label: fig-shape
+#| fig-cap: "Effect size and prey shape"
+
+orchard_plot(mr_prey_shape,
+              mod = "Shape_prey",
+              group = "Study_ID",
+              xlab = "Shape of prey",
+              angle = 45) +
+              scale_colour_okabe_ito(order = 6:9)+
+              scale_fill_okabe_ito(order = 6:9)
+
+```
+:::
+
+## Figure galary
+:::{.panel-tabset}
+
+### Discrete moderators
+```{r}
+#| label: fig-galary1
+#| fig-cap: "Discrete moderators"
+#| 
+main  <- mod_results(ma_all, group = "Study_ID")
+pattern <- mod_results(mr_eyespot, mod = "Treatment_stimulus", group = "Study_ID")
+shape  <- mod_results(mr_prey_type, mod = "Type_prey", group = "Study_ID")
+
+comb <- submerge(main, pattern, shape)
+
+comb_p <- orchard_plot(comb,
+                    group = "Study_ID",
+                    xlab = "log response ratio (lnRR)",
+                    tree.order = c( "Artificial", "Real","Conspicuous","Eyespot", "Intrcpt"),
+                    angle = 45,
+                    branch.size = 2) +
+                    theme(legend.direction = "horizontal",
+                    legend.text = element_text(size = 6)) +
+                    scale_colour_brewer(palette = "Pastel1") +
+                    scale_fill_brewer(palette = "Pastel1") 
+comb_p
+# ggsave("fig2_ver2.pdf", width = 15, height = 7, dpi = 450)
+
+# # overall effect
+# p1 <- orchard_plot(ma_all,
+#                     group = "Study_ID",
+#                     xlab = "log response ratio (lnRR)", 
+#                     angle = 45,
+#                     alpha = 0.4,
+#                     # trank.size = 3, 
+#                     # branch.size = 1.2,
+#                     legend.pos = "bottom.right") + 
+#                     scale_x_discrete(labels = c("Overall effect")) + 
+#                     theme(legend.direction = "horizontal",
+#                     legend.text = element_text(size = 6)) +
+#                     scale_colour_manual(values = "indianred1")+
+#                     scale_fill_manual(values = "indianred1")
+
+# # ggsave("fig1.pdf", width = 15, height = 5, dpi = 450)
+
+# #eyespot vs. conspicuous patterns
+# p2 <- orchard_plot(mr_eyespot,
+#                   mod = "Treatment_stimulus",
+#                   group = "Study_ID",
+#                   xlab = "log response ratio (lnRR)",
+#                   angle = 45,
+#                   legend.pos = "bottom.right") +
+#                   theme(legend.direction = "horizontal",
+#                   legend.text = element_text(size = 6)) +
+#                   scale_colour_brewer(palette = "Pastel1") +
+#                   scale_fill_brewer(palette = "Pastel1") 
+              
+# # ggsave("fig2.pdf", width = 15, height = 5, dpi = 450)
+
+# # prey type - real vs. artificial
+# p3 <- orchard_plot(mr_prey_type,
+#                   mod = "Type_prey",
+#                   group = "Study_ID",
+#                   xlab = "log response ratio (lnRR)",
+#                   angle = 45,
+#                   legend.pos = "bottom.right") +
+#                   theme(legend.direction = "horizontal",
+#                   legend.text = element_text(size = 6))+ 
+#                   scale_colour_brewer(palette = "Accent", direction = - 1) +
+#                   scale_fill_brewer(palette = "Accent", direction = - 1)
+# # combine
+# patch1 <- p1 | (p2 / p3)
+# patch1 + plot_annotation(tag_levels = "a")
+
+# # output figure as pdf
+# #ggsave("fig1_2.pdf", width = 15, height = 7, dpi = 450)
+
+p4 <- orchard_plot(mr_prey_shape,
+                  mod = "Shape_prey",
+                  group = "Study_ID",
+                  xlab = "log response ratio (lnRR)",
+                  angle = 45,
+                  legend.pos = "bottom.right") +
+                  theme(legend.direction = "horizontal",
+                  legend.text = element_text(size = 6)) +
+                  scale_colour_brewer(palette = "YlGnBu") +
+                  scale_fill_brewer(palette = "YlGnBu")
+p4
+
+# ggsave("figS_shape.pdf", width = 15, height = 10, dpi = 450)
+```
+
+### Continuous moderators
+```{r}
+#| label: fig-galary2
+#| fig-cap: "Continuous moderators"
+
+
+# these figs were created by multi meta-regression model results
+# log-transformed area
+p5 <- bubble_plot(mr_area,
+                  mod = "Log_area",
+                  group = "Study_ID",
+                  xlab = "Log-transformed area",
+                  est.lwd = 1.2,
+                  est.col = "deeppink3") +
+                  scale_x_continuous(breaks = seq(0,7,1.5)) +
+                  scale_y_continuous(breaks = seq(-3.0, 4.5, 1.0))
+
+# number of patterns
+p6 <- bubble_plot(mr_num,
+            mod = "Number_pattern",
+            group = "Study_ID",
+            xlab = "Number of patterns",
+            est.lwd = 1.2,
+            est.col = "turquoise4") +
+      scale_x_continuous(breaks = seq(0,11,2)) +
+      scale_y_continuous(breaks = seq(-3.0, 4.5, 1.0))
+
+# combine
+p5 / p6 + plot_annotation(tag_levels = "a")
+
+# output figure as pdf
+# ggsave("fig2_multi.pdf", width = 10, height =10,  dpi = 450)
+
+# diameter
+p7 <- bubble_plot(mr_diameter,
+            mod = "Log_diameter",
+            group = "Study_ID",
+            xlab = "Log-transformed diameter")
+
+# background
+p8 <- bubble_plot(mr_background,
+            mod = "Log_background",
+            group = "Study_ID",
+            xlab = "Log-transformed total prey surface area")
+
+p7 / p8 + plot_annotation(tag_levels = "a")
+
+# ggsave("figS_dimsurface.pdf", width = 10, height = 10, dpi = 450)
+```
+
+### Publication bias
+
+```{r}
+#| label: fig-galary3
+#| fig-cap: "Publication bias"
+#| fig-subcap:
+#|    - "Funnel plot"
+#|    - "Egger's test and Decline effect"
+#| layout-ncol: 2
+
+# funnel plot
+
+# pdf("fig3.pdf")
+
+funnel(ma_all, yaxis = "seinv", 
+      xlab = "Standarised residuals",
+      ylab = "Precision (inverse of SE)",
+      xlim = c(-4.0, 4.5), 
+      ylim = c(0.01, 80.0), 
+      col = c(alpha("mediumvioletred", 0.5)),
+      cex = 0.7)
+
+# dev.off()
+
+# Egger's test and decline effect
+p9 <- bubble_plot(bias_model,
+            mod = "sqrt_inv_e_n",
+            group = "Study_ID",
+            xlab = "Square root of inverse of effective sample size") +
+            scale_y_continuous(breaks = seq(-2.5, 4.5, 1.5)) 
+
+p10 <- bubble_plot(year_model,
+            mod = "Year",
+            group = "Study_ID",
+            xlab = "Year of publication") +  scale_y_continuous(breaks = seq(-2.5, 4.0, 1.5)) 
+
+# combine plots created by bubble_plot()
+pub <- p9 / p10
+pub +  plot_annotation(tag_levels = 'a') 
+
+# output figure as pdf
+# ggsave("fig4.pdf", width = 10, height = 10, dpi = 450)
+
+```
+
+### Publication bias (multi-moderator)
+```{r}
+#| label: fig-galary4
+#| fig-cap: "Publication bias (multi-moderator)"
+#| fig-subcap:
+#|    - "Egger's test and Decline effect (multi-moderator)"
+
+p11 <- bubble_plot(multi_bias,
+            mod = "sqrt_inv_e_n",
+            group = "Study_ID",
+            xlab = "Square root of inverse of effective sample size")
+
+p12 <- bubble_plot(multi_bias,
+            mod = "Year",
+            group = "Study_ID",
+            xlab = "Year of publication")
+
+p11 / p12 +  plot_annotation(tag_levels = 'a')
+
+# ggsave("figS_pub.pdf", width = 10, height = 10, dpi = 450)
+
+```
+
+:::
+
 # Meta-analysis - predator dataset
 
 We used meta-analytical models to calculate total I2 (a measure of heterogeneity not caused by sampling error; Higgins. et al., 2003) and the partial I2 explained by each random factor.
@@ -1988,997 +2961,11 @@ prey_pub +  plot_annotation(tag_levels = 'a')
 ```
 
 
-# Meta-analysis - all dataset
-
-We used meta-analytical models to calculate total I2 (a measure of heterogeneity not caused by sampling error; Higgins. et al., 2003) and the partial I2 explained by each random factor.
-
-::: callout-note
-## Which random effects remove in our models?
-
-We can remove _Shared control ID_ and _Cohort ID_
-:::
-
-```{r}
-# I exclude cohort_ID because sigma^2.2 = 0 and I2 = 0
-ma_all <- rma.mv(yi = lnRR,
-                  V = VCV, 
-                  random = list(~1 | Study_ID,
-                                ~1 | Shared_control_ID,
-                                ~1 | Cohort_ID,
-                                ~1 | Obs_ID),
-                  test = "t",
-                  method = "REML", 
-                  sparse = TRUE,
-                  data = dt_all)
-
-summary(ma_all)
-i2 <- round(i2_ml(ma_all), 4)
-r2 <- round(r2_ml(ma_all), 4)
-```
-
-```{r}
-#| echo: false
-t_i2 <- t(i2)
-t_r2 <- t(r2)
-knitr::kable(t_i2)
-knitr::kable(t_r2)
-```
-**Table 3 - Heterogeneity of effect size**
-
-```{r}
-#| label: fig-ma_all
-#| fig-cap: "Estimates of overall effect size and 95% confidence intervals"
-#| fig-cap-location: bottom
-
-orchard_plot(ma_all,
-              group = "Study_ID",
-              xlab = "log response ratio (lnRR)", 
-              angle = 45) + 
-              scale_x_discrete(labels = c("Overall effect")) + 
-              scale_colour_okabe_ito()+
-              scale_fill_okabe_ito()
-
-```
-
-## Meta-regressions: uni-moderator
-
-:::{.panel-tabset}
-
-### Pattern type
-Eyespot vs. conspicuous patterns - Is there significant difference of effect size between two patterns?
-
-```{r}
-
-#normal model
-mr_eyespot <- rma.mv(yi = lnRR,
-                    V = VCV, 
-                    mods = ~ Treatment_stimulus,
-                    random = list(~1 | Study_ID,
-                                  ~1 | Obs_ID),
-                    test = "t",
-                    method = "REML", 
-                    sparse = TRUE,
-                    data = dt_all)
-
-summary(mr_eyespot)
-
-r2_1 <- round(r2_ml(mr_eyespot), 4)
-```
-
-```{r}
-#| echo: false
-
-
-t_r2_1 <- t(r2_1)
-knitr::kable(t_r2_1)  
-```
-**Table XX. Model goodness-of-fit**
-
-
-```{r}
-#| label: fig-eyespot
-#| fig-cap: "Eyespot vs. conspicuous patterns"
-
-orchard_plot(mr_eyespot,
-            mod = "Treatment_stimulus",
-            group = "Study_ID",
-            xlab = "log response ratio (lnRR)",
-            angle = 45) + 
-            scale_colour_okabe_ito(order = 2:3)+
-            scale_fill_okabe_ito(order = 2:3)
-
-```
-
-
-```{r}
-
-# intercept-removed model
-mr_eyespot1 <- rma.mv(yi = lnRR,
-                      V = VCV, 
-                      mods = ~ Treatment_stimulus -1,
-                      random = list(~1 | Study_ID,
-                                    ~1 | Obs_ID),
-                      test = "t",
-                      method = "REML", 
-                      sparse = TRUE,
-                      data = dt_all)
-
-summary(mr_eyespot1)
-
-```
-
-### Pattern diameter (mm) 
-
-```{r}
-#| label: fig-diameter
-#| fig-cap: "Effect size and pattern diameter"
-
-mr_diameter <- rma.mv(yi = lnRR,
-                      V = VCV, 
-                      mods = ~ Log_diameter,
-                      random = list(~1 | Study_ID,
-                                    ~1 | Obs_ID),
-                      test = "t",
-                      method = "REML", 
-                      sparse = TRUE,
-                      data = dt_all)
-
-summary(mr_diameter)
-
-
-r2_2 <- round(r2_ml(mr_diameter), 4)
-```
-
-```{r}
-#| echo: false
-
-
-t_r2_2 <- t(r2_2)
-knitr::kable(t_r2_2)  
-```
-**Table XX. Model goodness-of-fit**
-
-```{r}
-
-bubble_plot(mr_diameter,
-            mod = "Log_diameter",
-            group = "Study_ID",
-            xlab = "Log-transformed diameter")
-
-# ggsave("figS_diameter.pdf", width = 10, height = 10, dpi = 450)
-```
-
-### Pattern area (mm²)
-
-```{r}
-#| label: fig-area
-#| fig-cap: "Effect size and pattern area"
-
-mr_area <- rma.mv(yi = lnRR,
-                  V = VCV, 
-                  mods = ~ Log_area,
-                  random = list(~1 | Study_ID,
-                                ~1 | Obs_ID),
-                  test = "t",
-                  method = "REML", 
-                  sparse = TRUE,
-                  data = dt_all)
-
-summary(mr_area)
-
-r2_3 <- round(r2_ml(mr_area), 4)
-```
-
-```{r}
-#| echo: false
-
-t_r2_3 <- t(r2_3)
-knitr::kable(t_r2_3)  
-```
-**Table XX. Model goodness-of-fit**
-
-```{r}
-
-bubble_plot(mr_area,
-            mod = "Log_area",
-            group = "Study_ID",
-            xlab = "Log-transformed area")
-
-```
-
-### Total pattern area (mm²)
-```{r}
-mr_area_T  <- rma.mv(yi = lnRR,
-                  V = VCV, 
-                  mods = ~ Log_area_pattern_T ,
-                  random = list(~1 | Study_ID,
-                                ~1 | Obs_ID),
-                  test = "t",
-                  method = "REML", 
-                  sparse = TRUE,
-                  data = dt_all)
-
-summary(mr_area_T)
-r2_3_1 <- round(r2_ml(mr_area_T), 4)
-```
-
-```{r}
-#| echo: false
-
-t_r2_3_1 <- t(r2_3_1)
-knitr::kable(t_r2_3_1)  
-```
-**Table XX. Model goodness-of-fit**
-
-```{r}
-bubble_plot(mr_area_T,
-            mod = "Log_area_pattern_T",
-            group = "Study_ID",
-            xlab = "Log-transformed pattern total area")
-```
-
-### Pattern number
-
-```{r}
-#| label: fig-number
-#| fig-cap: "Effect size and number of patterns"
-
-mr_num <- rma.mv(yi = lnRR,
-                  V = VCV,
-                  mods = ~ Number_pattern,
-                  random = list(~1 | Study_ID,
-                                ~1 | Obs_ID),
-                      test = "t",
-                      method = "REML",
-                      sparse = TRUE,
-                      data = dt_all)
-
-summary(mr_num)
-
-r2_4 <- round(r2_ml(mr_num), 4)
-```
-
-```{r}
-#| echo: false
-
-t_r2_4 <- t(r2_4)
-knitr::kable(t_r2_4)  
-```
-
-**Table XX. Model goodness-of-fit**
-  
-```{r}
-
-bubble_plot(mr_num,
-            mod = "Number_pattern",
-            group = "Study_ID",
-            xlab = "Number of patterns") 
-
-```
-
-### Background area (mm²)
-```{r}
-#| label: fig-background
-#| fig-cap: "Effect size and background area"
-
-mr_background <- rma.mv(yi = lnRR,
-                        V = VCV, 
-                        mods = ~ Log_background,
-                        random = list(~1 | Study_ID,
-                                      ~1 | Obs_ID),
-                        test = "t",
-                        method = "REML",
-                        sparse = TRUE,
-                        data = dt_all)
-
-summary(mr_background)
-
-r2_ml(mr_background)
-
-
-bubble_plot(mr_background,
-            mod = "Log_background",
-            group = "Study_ID",
-            xlab = "Log-transformed backgroud")
-ggsave("figS_background.pdf", width = 10, height = 10, dpi = 450)
-```
-
-### Prey material type
-Our dataset includes two material types of prey: live and artificial. Is there significant difference of effect size between two stimuli?
-```{r}
-#| label: fig-stimuli
-#| fig-cap: "Effect size and prey type - real vs. artificial"
-
-# normal model
-mr_prey_type <- rma.mv(yi = lnRR,
-                  V = VCV, 
-                  mods = ~ Type_prey,
-                  random = list(~1 | Study_ID,
-                                ~1 | Obs_ID),
-                  test = "t",
-                  method = "REML", 
-                  sparse = TRUE,
-                  data = dt_all)
-
-summary(mr_prey_type)
-
-r2_5 <- round(r2_ml(mr_prey_type), 4)
-
-```
-
-```{r}
-#| echo: false
-
-t_r2_5 <- t(r2_5)
-knitr::kable(t_r2_5)
-
-```
-**Table XX. Model goodness-of-fit**
-
-```{r}
-
-orchard_plot(mr_prey_type,
-              mod = "Type_prey",
-              group = "Study_ID",
-              xlab = "Type of prey",
-              angle = 45) +
-            scale_colour_okabe_ito(order = 4:5)+
-            scale_fill_okabe_ito(order = 4:5)
-
-
-# intercept-removed model
-mr_prey_type1 <- rma.mv(yi = lnRR,
-                        V = VCV, 
-                        mods = ~ Type_prey -1,
-                        random = list(~1 | Study_ID,
-                                      ~1 | Obs_ID),
-                        test = "t",
-                        method = "REML", 
-                        sparse = TRUE,
-                        data = dt_all)
-
-summary(mr_prey_type1)
-```
-
-### Prey shape type
-Our dataset includes 4 types of prey type: real butterfly, abstract butterfly, abstract caterpillar, and abstract prey. Is there significant difference of effect size between two stimuli?
-
-```{r}
-
-mr_prey_shape <- rma.mv(yi = lnRR,
-                        V = VCV, 
-                        mods = ~ Shape_prey -1,
-                        random = list(~1 | Study_ID,
-                                      ~1 | Obs_ID),
-                                      test = "t",
-                                      method = "REML", 
-                                      sparse = TRUE,
-                                      data = dt_all)
-
-summary(mr_prey_shape)
-
-r2_6 <- round(r2_ml(mr_prey_shape), 4)
-
-dat_all$Shape_prey <- factor(dat_all$Shape_prey)
-levels(dat_all$Shape_prey)
-
-mat_ex <- 
-    cbind(contrMat(rep(1,
-                       length(mr_prey_shape$ci.ub)),
-                   type = "Tukey"))
-sig_test <- summary(glht(mr_prey_shape, linfct= mat_ex), test = adjusted("none"))
-
-sig_test
-```
-
-```{r}
-#| echo: false
-
-t_r2_6 <- t(r2_6)
-knitr::kable(t_r2_6)  
-```
-**Table XX. Model goodness-of-fit**
-
-```{r}
-#| label: fig-shape
-#| fig-cap: "Effect size and prey shape"
-
-orchard_plot(mr_prey_shape,
-              mod = "Shape_prey",
-              group = "Study_ID",
-              xlab = "Shape of prey",
-              angle = 45) +
-              scale_colour_okabe_ito(order = 6:9)+
-              scale_fill_okabe_ito(order = 6:9)
-
-ggsave("fig-shape.pdf", width = 10, height = 10, dpi = 450)
-
-```
-
-
-:::
-
-## Correlation visualisation and choose moderators
-Before we run multi-moderator meta-regressions, we need to consider the correlation between moderators.
-Area, diameter and background seem to be correlated. We visualised the correlation between these variables.
-
-:::{.panel-tabset}
-
-### Visualisation of correlation
-
-```{r}
-#| label: fig-cor-continuous
-#| fig-cap: "Correlation between coninuous moderators"
-#| fig-width: 10
-#| fig-height: 10
-# correlation between continuous variables
-corr_cont <- round(cor(dt_all[, c("Diameter_pattern", "Area_pattern", "Number_pattern","Log_area_pattern_T", "Area_background")]),2)
-
-p1 <- ggcorrplot(corr_cont, hc.order = TRUE, lab = TRUE, outline.col = "white", colors = c("#6D9EC1", "white", "#E46726"), title = "(a) Continuous variables")
-
-corr_cont_log <- round(cor(dt_all[, c("Log_diameter", "Log_area", "Number_pattern","Log_area_pattern_T", "Log_background")]),2)
-
-p2 <- ggcorrplot(corr_cont_log, hc.order = TRUE, lab = TRUE, outline.col = "white", colors = c("#6D9EC1", "white", "#E46726"), title = "(b) Log-transormed continuous variables")
-
-p1 + p2 + plot_layout(guides = 'collect')
-```
-
-```{r}
-#| label: fig-cor-categorical
-#| fig-cap: "Correlation between categorical variables"
-
-dat1 <- dt_all %>%
-  dplyr::select("Treatment_stimulus", "Type_prey", "Shape_prey")
-
-corr_cat <- GKtauDataframe(dat1)
-plot(corr_cat)
-
-```
-We should not include "Shape_prey" and "Type_prey" in the model at the same time. Because they are correlated.
-
-### Choose moderators
-We used model R2 values to find better model and modelator VIF values to check multicollinearity between moderators. 
-Higher R2 indicates better model and VIF > 2 indicates multicollinearity. 
-
-#### R2
-```{r}
-
-r2_area <- rma.mv(yi = lnRR,
-                  V = VCV,
-                  mods = ~ Log_area + Number_pattern,
-                  random = list(~1 | Study_ID,
-                                ~1 | Obs_ID),
-                  test = "t",
-                  method = "REML",
-                  sparse = TRUE,
-                  data = dt_all)
-
-r2_area_T <- rma.mv(yi = lnRR,
-                  V = VCV,
-                  mods = ~ Log_area_pattern_T + Number_pattern,
-                  random = list(~1 | Study_ID,
-                                ~1 | Obs_ID),
-                  test = "t",
-                  method = "REML",
-                  sparse = TRUE,
-                  data = dt_all)
-
-r2_diameter <- rma.mv(yi = lnRR,
-                      V = VCV,
-                      mods = ~ Log_diameter + Number_pattern,
-                      random = list(~1 | Study_ID,
-                                    ~1 | Obs_ID),
-                      test = "t",
-                      method = "REML",
-                      sparse = TRUE,
-                      data = dt_all)
-
-# check r2 values
-r2_ml(r2_area)
-r2_ml(r2_area_T)
-r2_ml(r2_diameter)
-
-```
-It seems **pattern total area** is a better predictor than **diameter**?.
-
-:::
-
-## Meta-regressions: multi-moderator
-
-:::{.panel-tabset}
-
-### All potential moderators (full model)
-Include all moderators in the model.
-
-```{r}
-
-mr_all <- rma.mv(yi = lnRR,
-                V = VCV, 
-                mods = ~ Treatment_stimulus + Log_area 
-                + Number_pattern + Type_prey,
-                random = list(~1 | Study_ID,
-                              ~1 | Obs_ID),
-                test = "t",
-                method = "REML", 
-                sparse = TRUE,
-                data = dt_all)
-
-summary(mr_all)
-
-r2_ml(mr_all)
-
-```
-
-Total patern area
-```{r}
-mr_all_2 <- rma.mv(yi = lnRR,
-                V = VCV, 
-                mods = ~ Treatment_stimulus + Log_area_pattern_T 
-                + Number_pattern + Type_prey,
-                random = list(~1 | Study_ID,
-                              ~1 | Obs_ID),
-                test = "t",
-                method = "REML", 
-                sparse = TRUE,
-                data = dt_all)
-summary(mr_all_2)
-
-```
-
-### Moderators associated with conspicuousness
-Only include moderators related to conspicuousness (pattern are/total area and number of patterns) in the model.
-
-```{r}
-
-mr_cons <- rma.mv(yi = lnRR,
-                V = VCV, 
-                mods = ~ Log_area + Number_pattern,
-                random = list(~1 | Study_ID,
-                              ~1 | Obs_ID),
-                test = "t",
-                method = "REML", 
-                sparse = TRUE,
-                data = dt_all)
-
-summary_cons <- summary(mr_cons)
-summary_cons_output <- capture.output(summary_cons)
-writeLines(summary_cons_output, "summary_cons.csv")
-
-r2_ml(mr_cons)
-
-bubble_plot(mr_cons,
-            mod = "Number_pattern",
-            group = "Study_ID",
-            xlab = "Log-transformed area")
-
-```
-```{r}
-mr_cons1 <- rma.mv(yi = lnRR,
-                V = VCV, 
-                mods = ~ Log_area_pattern_T + Number_pattern,
-                random = list(~1 | Study_ID,
-                              ~1 | Obs_ID),
-                test = "t",
-                method = "REML", 
-                sparse = TRUE,
-                data = dt_all)
-
-summary(mr_cons1)
-
-bubble_plot(mr_cons1,
-            mod = "Log_area_pattern_T",
-            group = "Study_ID",
-            xlab = "Log-transformed area")
-bubble_plot(mr_cons1,
-            mod = "Number_pattern",
-            group = "Study_ID",
-            xlab = "Log-transformed area")
-
-r2_ml(mr_cons1)
-```
-
-
-```{r}
-mr_cons2 <- rma.mv(yi = lnRR,
-                V = VCV, 
-                mods = ~ Log_area + Number_pattern + Treatment_stimulus,
-                random = list(~1 | Study_ID,
-                              ~1 | Obs_ID),
-                test = "t",
-                method = "REML", 
-                sparse = TRUE,
-                data = dt_all)
-
-summary(mr_cons2)
-
-r2_ml(mr_cons2)
-
-```
-
-```{r}
-mr_cons3 <- rma.mv(yi = lnRR,
-                V = VCV, 
-                mods = ~ Log_area_pattern_T + Number_pattern + Treatment_stimulus,
-                random = list(~1 | Study_ID,
-                              ~1 | Obs_ID),
-                test = "t",
-                method = "REML", 
-                sparse = TRUE,
-                data = dt_all)
-
-summary(mr_cons3)
-
-r2_ml(mr_cons3)
-```
-
-### Moderators associated with prey
-```{r}
-mr_pre <- rma.mv(yi = lnRR,
-                V = VCV, 
-                mods = ~ Treatment_stimulus + Type_prey,
-                random = list(~1 | Study_ID,
-                              ~1 | Obs_ID),
-                test = "t",
-                method = "REML", 
-                sparse = TRUE,
-                data = dt_all)
-
-summary(mr_pre)
-
-r2_ml(mr_pre)
-```
-:::
-
-## Publication bias
-
-:::{.panel-tabset}
-
-### Funnel plot
-
-```{r}
-#| layout-ncol: 2
-#| label: fig-funnel
-#| fig-cap: "Funnel plot of effect size and its standard error"
-#| fig-subcap: 
-#|   - "Effect size and its standard error"
-#|   - "Effect size and its inverse standard error"
-
-# funnel plot - standard error
-funnel(ma_all, yaxis = "sei", 
-      xlab = "Standarised residuals",
-      ylab = "Precision (inverse of SE)" )
-
-# funnel plot - inverse of standard error
-f2 <- funnel(ma_all, yaxis = "seinv", 
-      xlab = "Standarized residuals",
-      ylab = "Precision (inverse of SE)",  col = c(alpha("orange", 0.5)))
-```
-
-### Egger's test
-
-```{r}
-#| label: fig-egger
-#| fig-cap: "Egger's test of publication bias"
-
-df_bias <- dt_all %>% mutate(sqrt_inv_e_n = sqrt((Cn + Tn)/(Cn * Tn)))
-
-bias_model <- rma.mv(yi = lnRR,
-                      V = lnRR_var, 
-                      mods = ~ 1 + sqrt_inv_e_n,
-                      random = list(~1 | Study_ID,
-                                    ~1 | Obs_ID),
-                      test = "t",
-                      method = "REML", 
-                      sparse = TRUE,
-                      data = df_bias)
-
-summary(bias_model)
-
-bubble_plot(bias_model,
-            mod = "sqrt_inv_e_n",
-            group = "Study_ID",
-            xlab = "Square root of inverse of effective sample size")
-
-```
-
-### Decline effect
-```{r}
-#| label: fig-decline
-#| fig-cap: "Decline effect"
-
-year_model <- rma.mv(yi = lnRR,
-                      V = VCV, 
-                      mods = ~  1 + Year,
-                      random = list(~1 | Study_ID,
-                                    ~1 | Obs_ID),
-                      test = "t",
-                      method = "REML", 
-                      sparse = TRUE,
-                      data = df_bias)
-
-summary(year_model)
-
-bubble_plot(year_model,
-            mod = "Year",
-            group = "Study_ID",
-            xlab = "Year of publication")
-
-```
-
-### Multi-moderator
-```{r}
-
-multi_bias <- rma.mv(yi = lnRR,
-                      V = VCV, 
-                      mods = ~ Treatment_stimulus + Log_area 
-                             + Number_pattern + Type_prey
-                             + sqrt_inv_e_n + Year,
-                      random = list(~1 | Study_ID,
-                                    ~1 | Obs_ID),
-                      test = "t",
-                      method = "REML", 
-                      sparse = TRUE,
-                      data = df_bias)
-
-summary(multi_bias)
-
-bubble_plot(multi_bias,
-            mod = "sqrt_inv_e_n",
-            group = "Study_ID",
-            xlab = "Square root of inverse of effective sample size")
-
-bubble_plot(multi_bias,
-            mod = "Year",
-            group = "Study_ID",
-            xlab = "Year of publication")
-
-```
-
-:::
-
-## Additional analyses
-
-### Dataset
-We compared effect size between two datasets (predator and prey) to see whether there is any difference in effect size between two datasets.
-
-```{r}
-#| label: fig-dataset
-#| fig-cap: "Effect size and dataset - predator and prey"
-
-mr_dataset <- rma.mv(yi = lnRR,
-                      V = VCV,
-                      mods = ~ Dataset,
-                      random = list(~1 | Study_ID,
-                                    ~1 | Obs_ID),
-                      test = "t",
-                      method = "REML",
-                      sparse = TRUE,
-                      data = dt_all)
-
-summary(mr_dataset)
-
-orchard_plot(mr_dataset,
-            mod = "Dataset",
-            group = "Study_ID",
-            xlab = "Dataset", 
-            angle = 45) 
-
-```
-
-## Figure galary
-:::{.panel-tabset}
-
-### Discrete moderators
-```{r}
-#| label: fig-galary1
-#| fig-cap: "Discrete moderators"
-
-# overall effect
-p1 <- orchard_plot(ma_all,
-                    group = "Study_ID",
-                    xlab = "log response ratio (lnRR)", 
-                    angle = 45,
-                    alpha = 0.4,
-                    # trank.size = 3, 
-                    # branch.size = 1.2,
-                    legend.pos = "bottom.right") + 
-                    scale_x_discrete(labels = c("Overall effect")) + 
-                    theme(legend.direction = "horizontal",
-                    legend.text = element_text(size = 6)) +
-                    scale_colour_manual(values = "indianred1")+
-                    scale_fill_manual(values = "indianred1")
-
-# ggsave("fig1.pdf", width = 15, height = 5, dpi = 450)
-
-#eyespot vs. conspicuous patterns
-p2 <- orchard_plot(mr_eyespot,
-                  mod = "Treatment_stimulus",
-                  group = "Study_ID",
-                  xlab = "log response ratio (lnRR)",
-                  angle = 45,
-                  legend.pos = "bottom.right") +
-                  theme(legend.direction = "horizontal",
-                  legend.text = element_text(size = 6)) +
-                  scale_colour_brewer(palette = "Pastel1") +
-                  scale_fill_brewer(palette = "Pastel1") 
-              
-# ggsave("fig2.pdf", width = 15, height = 5, dpi = 450)
-
-# prey type - real vs. artificial
-p3 <- orchard_plot(mr_prey_type,
-                  mod = "Type_prey",
-                  group = "Study_ID",
-                  xlab = "log response ratio (lnRR)",
-                  angle = 45,
-                  legend.pos = "bottom.right") +
-                  theme(legend.direction = "horizontal",
-                  legend.text = element_text(size = 6))+ 
-                  scale_colour_brewer(palette = "Accent", direction = - 1) +
-                  scale_fill_brewer(palette = "Accent", direction = - 1)
-
-
-main  <- mod_results(ma_all, group = "Study_ID")
-pattern <- mod_results(mr_eyespot, mod = "Treatment_stimulus", group = "Study_ID")
-
-comb <- submerge(main, pattern)
-# ggsave("fig3.pdf", width = 15, height = 5, dpi = 450)
-comb_p <- orchard_plot(comb,
-                    group = "Study_ID",
-                    xlab = "log response ratio (lnRR)",
-                    angle = 45,
-                    branch.size = 3) +
-                    theme(legend.direction = "horizontal",
-                    legend.text = element_text(size = 6)) +
-                    scale_colour_brewer(palette = "Pastel1") +
-                    scale_fill_brewer(palette = "Pastel1")   
-
-comb_p
-# combine
-patch1 <- p1 | (p2 / p3)
-patch1 + plot_annotation(tag_levels = "a")
-
-# output figure as pdf
-ggsave("fig1_2.pdf", width = 15, height = 7, dpi = 450)
-
-p4 <- orchard_plot(mr_prey_shape,
-                  mod = "Shape_prey",
-                  group = "Study_ID",
-                  xlab = "log response ratio (lnRR)",
-                  angle = 45,
-                  legend.pos = "bottom.right") +
-                  theme(legend.direction = "horizontal",
-                  legend.text = element_text(size = 6)) +
-                  scale_colour_brewer(palette = "YlGnBu") +
-                  scale_fill_brewer(palette = "YlGnBu")
-p4
-
-# ggsave("figS_shape.pdf", width = 15, height = 10, dpi = 450)
-```
-
-### Continuous moderators
-```{r}
-#| label: fig-galary2
-#| fig-cap: "Continuous moderators"
-
-
-# these figs were created by multi meta-regression model results
-# log-transformed area
-p5 <- bubble_plot(mr_area,
-                  mod = "Log_area",
-                  group = "Study_ID",
-                  xlab = "Log-transformed area",
-                  est.lwd = 1.2,
-                  est.col = "deeppink3") +
-                  scale_x_continuous(breaks = seq(0,7,1.5)) +
-                  scale_y_continuous(breaks = seq(-3.0, 4.5, 1.0))
-
-# number of patterns
-p6 <- bubble_plot(mr_num,
-            mod = "Number_pattern",
-            group = "Study_ID",
-            xlab = "Number of patterns",
-            est.lwd = 1.2,
-            est.col = "turquoise4") +
-      scale_x_continuous(breaks = seq(0,11,2)) +
-      scale_y_continuous(breaks = seq(-3.0, 4.5, 1.0))
-
-# combine
-p5 / p6 + plot_annotation(tag_levels = "a")
-
-# output figure as pdf
-# ggsave("fig2_multi.pdf", width = 10, height =10,  dpi = 450)
-
-# diameter
-p7 <- bubble_plot(mr_diameter,
-            mod = "Log_diameter",
-            group = "Study_ID",
-            xlab = "Log-transformed diameter")
-
-# background
-p8 <- bubble_plot(mr_background,
-            mod = "Log_background",
-            group = "Study_ID",
-            xlab = "Log-transformed total prey surface area")
-
-p7 / p8 + plot_annotation(tag_levels = "a")
-
-# ggsave("figS_dimsurface.pdf", width = 10, height = 10, dpi = 450)
-```
-
-### Publication bias
-
-```{r}
-#| label: fig-galary3
-#| fig-cap: "Publication bias"
-#| fig-subcap:
-#|    - "Funnel plot"
-#|    - "Egger's test and Decline effect"
-#| layout-ncol: 2
-
-# funnel plot
-
-# pdf("fig3.pdf")
-
-funnel(ma_all, yaxis = "seinv", 
-      xlab = "Standarised residuals",
-      ylab = "Precision (inverse of SE)",
-      xlim = c(-4.0, 4.5), 
-      ylim = c(0.01, 80.0), 
-      col = c(alpha("mediumvioletred", 0.5)),
-      cex = 0.7)
-
-# dev.off()
-
-# Egger's test and decline effect
-p9 <- bubble_plot(bias_model,
-            mod = "sqrt_inv_e_n",
-            group = "Study_ID",
-            xlab = "Square root of inverse of effective sample size") +
-            scale_y_continuous(breaks = seq(-2.5, 4.5, 1.5)) 
-
-p10 <- bubble_plot(year_model,
-            mod = "Year",
-            group = "Study_ID",
-            xlab = "Year of publication") +  scale_y_continuous(breaks = seq(-2.5, 4.0, 1.5)) 
-
-# combine plots created by bubble_plot()
-pub <- p9 / p10
-pub +  plot_annotation(tag_levels = 'a') 
-
-# output figure as pdf
-# ggsave("fig4.pdf", width = 10, height = 10, dpi = 450)
-
-```
-
-### Publication bias (multi-moderator)
-```{r}
-#| label: fig-galary4
-#| fig-cap: "Publication bias (multi-moderator)"
-#| fig-subcap:
-#|    - "Egger's test and Decline effect (multi-moderator)"
-
-p11 <- bubble_plot(multi_bias,
-            mod = "sqrt_inv_e_n",
-            group = "Study_ID",
-            xlab = "Square root of inverse of effective sample size")
-
-p12 <- bubble_plot(multi_bias,
-            mod = "Year",
-            group = "Study_ID",
-            xlab = "Year of publication")
-
-p11 / p12 +  plot_annotation(tag_levels = 'a')
-
-# ggsave("figS_pub.pdf", width = 10, height = 10, dpi = 450)
-
-```
-
-:::
-
 # R session infomation
 ```{r}
 #| echo: false
 
 sessionInfo() %>% pander::pander()
+
 
 ```
