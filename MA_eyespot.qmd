@@ -1319,21 +1319,27 @@ p5 / p6 + plot_annotation(tag_levels = "a")
 # output figure as pdf
 # ggsave("fig2_multi.pdf", width = 10, height =10,  dpi = 450)
 
+# total pattern area
+p7 <- bubble_plot(mr_area_T,
+            mod = "Log_area_pattern_T",
+            group = "Study_ID",
+            xlab = "Log-transformed total pattern area")
+
 # diameter
-p7 <- bubble_plot(mr_diameter,
+p8 <- bubble_plot(mr_diameter,
             mod = "Log_diameter",
             group = "Study_ID",
             xlab = "Log-transformed diameter")
 
 # background
-p8 <- bubble_plot(mr_background,
+p9 <- bubble_plot(mr_background,
             mod = "Log_background",
             group = "Study_ID",
             xlab = "Log-transformed total prey surface area")
 
-p7 / p8 + plot_annotation(tag_levels = "a")
+p7 / p8 /p9 + plot_annotation(tag_levels = "a")
 
-# ggsave("figS_dimsurface.pdf", width = 10, height = 10, dpi = 450)
+# ggsave("figS3.pdf", width = 10, height = 10, dpi = 450)
 ```
 
 ### Publication bias
