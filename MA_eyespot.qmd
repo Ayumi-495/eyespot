@@ -1220,9 +1220,8 @@ comb_p <- orchard_plot(comb,
                     scale_colour_brewer(palette = "Pastel1") +
                     scale_fill_brewer(palette = "Pastel1") 
 comb_p
-# ggsave("fig2_ver2.pdf", width = 15, height = 7, dpi = 450)
 
-# # overall effect
+# overall effect
 # p1 <- orchard_plot(ma_all,
 #                     group = "Study_ID",
 #                     xlab = "log response ratio (lnRR)", 
@@ -1237,8 +1236,6 @@ comb_p
 #                     scale_colour_manual(values = "indianred1")+
 #                     scale_fill_manual(values = "indianred1")
 
-# # ggsave("fig1.pdf", width = 15, height = 5, dpi = 450)
-
 # #eyespot vs. conspicuous patterns
 # p2 <- orchard_plot(mr_eyespot,
 #                   mod = "Treatment_stimulus",
@@ -1250,8 +1247,6 @@ comb_p
 #                   legend.text = element_text(size = 6)) +
 #                   scale_colour_brewer(palette = "Pastel1") +
 #                   scale_fill_brewer(palette = "Pastel1") 
-              
-# # ggsave("fig2.pdf", width = 15, height = 5, dpi = 450)
 
 # # prey type - real vs. artificial
 # p3 <- orchard_plot(mr_prey_type,
@@ -1268,9 +1263,6 @@ comb_p
 # patch1 <- p1 | (p2 / p3)
 # patch1 + plot_annotation(tag_levels = "a")
 
-# # output figure as pdf
-# #ggsave("fig1_2.pdf", width = 15, height = 7, dpi = 450)
-
 p4 <- orchard_plot(mr_prey_shape,
                   mod = "Shape_prey",
                   group = "Study_ID",
@@ -1281,9 +1273,6 @@ p4 <- orchard_plot(mr_prey_shape,
                   legend.text = element_text(size = 6)) +
                   scale_colour_brewer(palette = "YlGnBu") +
                   scale_fill_brewer(palette = "YlGnBu")
-p4
-
-# ggsave("figS_shape.pdf", width = 15, height = 10, dpi = 450)
 ```
 
 ### Continuous moderators
@@ -1316,9 +1305,6 @@ p6 <- bubble_plot(mr_num,
 # combine
 p5 / p6 + plot_annotation(tag_levels = "a")
 
-# output figure as pdf
-# ggsave("fig2_multi.pdf", width = 10, height =10,  dpi = 450)
-
 # total pattern area
 p7 <- bubble_plot(mr_area_T,
             mod = "Log_area_pattern_T",
@@ -1339,7 +1325,6 @@ p9 <- bubble_plot(mr_background,
 
 p7 / p8 /p9 + plot_annotation(tag_levels = "a")
 
-# ggsave("figS3.pdf", width = 10, height = 10, dpi = 450)
 ```
 
 ### Publication bias
@@ -1382,9 +1367,6 @@ p10 <- bubble_plot(year_model,
 pub <- p9 / p10
 pub +  plot_annotation(tag_levels = 'a') 
 
-# output figure as pdf
-# ggsave("fig4.pdf", width = 10, height = 10, dpi = 450)
-
 ```
 
 ### Publication bias (multi-moderator)
@@ -1406,7 +1388,6 @@ p12 <- bubble_plot(multi_bias,
 
 p11 / p12 +  plot_annotation(tag_levels = 'a')
 
-# ggsave("figS_pub.pdf", width = 10, height = 10, dpi = 450)
 
 ```
 
