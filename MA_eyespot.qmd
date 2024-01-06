@@ -964,14 +964,16 @@ r2_ml(mr_pre)
 #|   - "Effect size and its inverse standard error"
 
 # funnel plot - standard error
-funnel(ma_all, yaxis = "sei", 
+funnel(ma_all, yaxis = "sei", retate = TRUE,
       xlab = "Standarised residuals",
       ylab = "Precision (inverse of SE)" )
 
 # funnel plot - inverse of standard error
-f2 <- funnel(ma_all, yaxis = "seinv", 
+f2 <- funnel(ma_all, yaxis = "seinv", retate = TRUE,
       xlab = "Standarized residuals",
       ylab = "Precision (inverse of SE)",  col = c(alpha("orange", 0.5)))
+
+f2 + coord_fixed(ratio = 0.3)
 ```
 
 ### Egger's test
@@ -1339,17 +1341,18 @@ p7 / p8 /p9 + plot_annotation(tag_levels = "a")
 
 # funnel plot
 
-# pdf("fig3.pdf")
+pdf("funnel.pdf")
 
-funnel(ma_all, yaxis = "seinv", 
+ funnel(ma_all, yaxis = "seinv", 
       xlab = "Standarised residuals",
       ylab = "Precision (inverse of SE)",
-      xlim = c(-4.0, 4.5), 
-      ylim = c(0.01, 80.0), 
-      col = c(alpha("mediumvioletred", 0.5)),
-      cex = 0.7)
-
-# dev.off()
+      # xlim = c(-4.0, 4.5), 
+      # ylim = c(0.01, 60.0), 
+      col = c(alpha("black", 0.5)),
+      cex = 1.5) 
+plot(a)
+pdf("funnel2.pdf", width = 15, height = 10)
+dev.off()
 
 # Egger's test and decline effect
 p9 <- bubble_plot(bias_model,
