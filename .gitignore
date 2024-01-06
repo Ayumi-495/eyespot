@@ -3,5 +3,6 @@
 .Rhistory
 .RData
 .vscode/settings.json
-
+_config.yml
+_quarto.yml
 /.quarto/
