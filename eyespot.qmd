@@ -9,7 +9,7 @@ format:
     toc-depth: 3
     toc-float: true
     toc-title: "**Contents**"
-    output-file: "summary.html"
+    output-file: "index.html"
     embed-resources: true
     code-fold: true
     code-tools: true
