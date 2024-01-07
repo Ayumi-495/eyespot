@@ -1,59 +1,59 @@
-Item ,Description,
-Obs_ID,Identification number per effect size,
-Study_ID,Identification number per study (combination of first author surname and publication year),
-Cohort_ID,Identification number for each experiment within the same study,
-Shared_control_ID,Identification number for each same control stimulus within each study,
-Year,Publication year,
-Country,Location of the research organisation to which the first author was affiliated (country),
-Data_source,"Location of data (e.g., in-text, table, figure…etc)",
-Data_location,Location where data was obtained within paper,
-Bird_species,Bird species Latin binomial name (if specified),
-Bird_common_name,English common name of birds (if specified),
-Prey_species,Prey species Latin binomial name (if specified),
-Prey_common_name,Prey species Latin binomial name (if specified),
-Response,Whether the outcome was a continuous value or a percentage.,
-Measure,Categories of responses reported in each paper,
-Direction,"If there is a predation avoidance effect, whether the response is considered to increase or decrease or neutral?",
-Detail_result,More information of reported outcome,
-Note_result,Note of outcome,
-Treatment_stimulus,Type of presented stimulus pattern (eyespots or non-eyespot but conspicuousness pattern),
-Shape_pattern,"More detailed presented stimulus type (e.g., eyespots, circles, diamonds, etc.)",
-Control_stimulus,No patterns or cryptic patterns,
-Note_stimulus,Note of stimulus,
-Number_pattern,Number of shapes in pattern,
-Diameter_pattern,Maximum diameter/length of each pattern (mm),
-Log_diameter,Log-transformed maximum diameter/length of each shape,
-Area_pattern,Pattern area (mm2),
-Log_area,Log-transformed area of each pattern,
-area_pattern_T,Total pattern area (mm2),
-Log_area_pattern_T,Log-transformed total pattern area,
-Area_background,Total area of prey surface (mm2),
-Log_background,Log-transformed total area of prey surface,
-Type_prey,"Real' if a real/imitation of a particular butterfly was used as prey, otherwise 'abstract'",
-Shape_prey,A further subdivision of the former,
-Diet_bird,Bird diet,
-Bird_sex,Subject bird sex (if specified),
-Bird_age,Subject bird age (if specified),
-Tn,Treatment group saple size,
-Cn,Control group saple size,
-T_mean,Treatment group mean,
-C_mean,Control group mean,
-T_sd,Standard deviation of the tratment group,
-C_sd,Standard deviation of the control group,
-T_proportion,Proportion of surviving or being attacked in the treatment group,
-C_proportion,Proportion of surviving or being attacked in the control group,
-Study_design,Dependent or independent,
-Dataset,Predator or prey,
-Mean_median,Whether the paper reports the mean or the median values.,
-T_mean_median,"If the median values of treatment group was reported, it was entered. ",
-C_mean_median,"If the median values of control group was reported, it was entered. ",
-Type_of_variance_statistic,Type of variance reported.,
-T_se,Standard error of control group,
-C_se,Standard error of treatment group,
-T_variance_q1,First quartiles of treatment group,
-T_variance_q3,Third quartiles of treatment group,
-C_variance_q1,First quartiles of control group,
-C_variance_q3,Third quartiles of control group,
-lnRR,Effect size (log response ratio),
-lnRR_var,Variance of effect size,
-Note,Filled in any comments,
+Item ,Description
+Obs_ID,Identification number per effect size
+Study_ID,Identification number per study (combination of first author surname and publication year)
+Cohort_ID,Identification number for each experiment within the same study
+Shared_control_ID,Identification number for each same control stimulus within each study
+Year,Publication year
+Country,Location of the research organisation to which the first author was affiliated (country)
+Data_source,"Location of data (e.g., in-text, table, figure…etc)"
+Data_location,Location where data was obtained within paper
+Bird_species,Bird species Latin binomial name (if specified)
+Bird_common_name,English common name of birds (if specified)
+Prey_species,Prey species Latin binomial name (if specified)
+Prey_common_name,Prey species Latin binomial name (if specified)
+Response,Whether the outcome was a continuous value or a percentage.
+Measure,Categories of responses reported in each paper
+Direction,"If there is a predation avoidance effect, whether the response is considered to increase or decrease or neutral?"
+Detail_result,More information of reported outcome
+Note_result,Note of outcome
+Treatment_stimulus,Type of presented stimulus pattern (eyespots or non-eyespot but conspicuousness pattern)
+Shape_pattern,"More detailed presented stimulus type (e.g., eyespots, circles, diamonds, etc.)"
+Control_stimulus,No patterns or cryptic patterns
+Note_stimulus,Note of stimulus
+Number_pattern,Number of shapes in pattern
+Diameter_pattern,Maximum diameter/length of each pattern (mm)
+Log_diameter,Log-transformed maximum diameter/length of each shape
+Area_pattern,Pattern area (mm2)
+Log_area,Log-transformed area of each pattern
+area_pattern_T,Total pattern area (mm2)
+Log_area_pattern_T,Log-transformed total pattern area
+Area_background,Total area of prey surface (mm2)
+Log_background,Log-transformed total area of prey surface
+Type_prey,"Prey material type. 'Real' if a real/imitation of a particular butterfly was used as prey, otherwise 'abstract'"
+Shape_prey,A further subdivision of the former
+Diet_bird,Bird diet
+Bird_sex,Subject bird sex (if specified)
+Bird_age,Subject bird age (if specified)
+Tn,Treatment group saple size
+Cn,Control group saple size
+T_mean,Treatment group mean
+C_mean,Control group mean
+T_sd,Standard deviation of the tratment group
+C_sd,Standard deviation of the control group
+T_proportion,Proportion of surviving or being attacked in the treatment group
+C_proportion,Proportion of surviving or being attacked in the control group
+Study_design,Dependent or independent
+Dataset,Predator or prey
+Mean_median,Whether the paper reports the mean or the median values.
+T_mean_median,"If the median values of treatment group was reported, it was entered. "
+C_mean_median,"If the median values of control group was reported, it was entered. "
+Type_of_variance_statistic,Type of variance reported.
+T_se,Standard error of control group
+C_se,Standard error of treatment group
+T_variance_q1,First quartiles of treatment group
+T_variance_q3,Third quartiles of treatment group
+C_variance_q1,First quartiles of control group
+C_variance_q3,Third quartiles of control group
+lnRR,Effect size (log response ratio)
+lnRR_var,Variance of effect size
+Note,Filled in any comments
