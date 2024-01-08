@@ -8,19 +8,25 @@ format:
     toc-location: left
     toc-depth: 3
     toc-float: true
-    toc-title: "**Contents**"
+    toc-title: "**CONTENTS**"
     output-file: "index.html"
     embed-resources: true
     code-fold: true
-    code-tools: true
+    code-tools: 
+      source: false
     number-sections: true
     #bibliography: ./bib/ref.bib
     fontsize: "12"
-    max-width: "15"
+    mainfont: "Gill Sans"
+    monofont: "Courier"
+    fontcolor: ""
+    page-layout: article
     code-overflow: wrap
     df_print: paged
-    theme: sandstone
-    code-line-numbers: false　　　
+    theme: united
+    code-line-numbers: false　　
+    grid:
+      margin-width: 180px　
 crossref: 
   fig-title: Figure     # (default is "Figure")
   tbl-title: Table     # (default is "Table")
@@ -40,7 +46,7 @@ execute:
 
 ## Load packages and custom function
 Load packages, custom function, and dataset.
-Custom function is used for calculating effect sizes (lnRR) and their variance from raw data.
+Custom function is used for calculating the point estimate and sampling variance (var) of lnRR can be then calculated from raw data.
 
 ```{r}
 
@@ -263,16 +269,20 @@ options(DT.options = list(dom = "Blfrtip",
                                                  className = 'dt-center')),
                           buttons = c('copy', 'csv', 'excel', 'pdf')))
 
-dat_all <-  read.csv(here("data/all.csv"), header = T, fileEncoding = "CP932")
-
 ```
 
-## Dataset for meta-analysis
+## Dataset for analysis
+
 ::: {.panel-tabset}
 
-### dataset
-Calculate lnRR and lnRR variance and prepare dataset for analysis.
+### Dataset
+We calculated lnRR and lnRR variance and prepared the dataset for analysis. After that, we added effect size ID (obs_ID), calculated the lnRR and variance-covariance matrix (VCV), and log-transformed moderators.
+
 ```{r}
+
+# read raw data()
+dat_all <-  read.csv(here("data/all.csv"), header = T, fileEncoding = "CP932")
+
 # calculate effect sizes and their variances
 dt_all <- effect_lnRR(dat_all)
 
@@ -286,7 +296,6 @@ VCV <- vcalc(vi = lnRR_var,
              rho = 0.5,
              data = dt_all)
 
-
 # convert pattern maximum diameter/length, area total area to logarithm
 dt_all$area_pattern_T  <- dt_all$Area_pattern * dt_all$Number_pattern
 dt_all$Log_diameter <- log(dt_all$Diameter_pattern)
@@ -299,24 +308,17 @@ dt_all <- dt_all %>%
 
 ```
 
-#### Discription of dataset
 ```{r}
-meta <- read.csv(here("data/metadata.csv"), header = T, fileEncoding = "CP932")
-datatable(meta, extensions = "Buttons")
+#| echo: false
 
-```
-
-#### Dataset
-```{r}
 datatable(dt_all, extensions = "Buttons")
 
 ```
-Table 1 - Data descriptions and dataset
 
 ### effect size distribution
-Distribution of effect size and its variance
+These are the distributions of effect size and its variance.
 ```{r}
-#| label: fig-histrogram
+#| label: fig-histogram
 #| layout-ncol: 2
 #| fig-cap: 
 #|   - "lnRR"
@@ -325,13 +327,22 @@ Distribution of effect size and its variance
 hist(dt_all$lnRR)
 hist(dt_all$lnRR_var)
 ```
+
+### Description of dataset
+```{r}
+#| echo: false
+
+meta <- read.csv(here("data/metadata.csv"), header = T, fileEncoding = "CP932")
+datatable(meta, extensions = "Buttons")
+
+```
 :::
 
 # Let's meta-analysis and meta-regressions
 
 ## Meta-analysis: overall effect size
 
-First, we run meta-analytical models to calculate total I2 (a measure of heterogeneity not caused by sampling error; Higgins. et al., 2003) and the partial I2 explained by each random factor.
+First, we run meta-analytical models to calculate total I2 (a measure of heterogeneity not caused by sampling error; Higgins et al. 2003) and the partial I2 explained by each random factor.
 
 ```{r}
 ma_all <- rma.mv(yi = lnRR,
@@ -361,7 +372,6 @@ knitr::kable(t_i2)
 knitr::kable(t_r2)
 
 ```
-Table 2 - Heterogeneity of effect size
 
 ::: callout-note
 ## Which random effects are removed in our models?
@@ -391,11 +401,12 @@ We used log-transformed data for pattern area, total pattern area, total area of
 
 :::{.panel-tabset}
 
-### 1) pattern type
+### 1. pattern type
 Eyespot vs. non-eyespot patterns - is there a significant difference of effect size between two types of patterns?
 
- #### normal model
+#### normal model
 ```{r}
+
 mr_eyespot <- rma.mv(yi = lnRR,
                     V = VCV, 
                     mods = ~ Treatment_stimulus,
@@ -411,15 +422,15 @@ summary(mr_eyespot)
 r2_1 <- round(r2_ml(mr_eyespot), 4)
 
 ```
+
 ```{r}
 #| echo: false
 
 t_r2_1 <- t(r2_1)
 knitr::kable(t_r2_1)  
 ```
-Table 3. Model goodness-of-fit
 
-#### intercept from the model
+#### intercept-removed model
 ```{r}
 # intercept-removed model 
 mr_eyespot1 <- rma.mv(yi = lnRR,
@@ -450,7 +461,7 @@ orchard_plot(mr_eyespot,
 
 ```
 
-### 2) pattern area (mm²)
+### 2. pattern area (mm²)
 Does a larger pattern area improve predator avoidance?
 
 ```{r}
@@ -477,7 +488,6 @@ t_r2_2 <- t(r2_2)
 knitr::kable(t_r2_2)  
 
 ```
-Table 4. Model goodness-of-fit
 
 ```{r}
 #| label: fig-area
@@ -490,7 +500,7 @@ bubble_plot(mr_area,
 
 ```
 
-### 3) the number of pattern shapes
+### 3. the number of pattern shapes
 Does the number of pattern shapes affect predator avoidance?
 
 ```{r}
@@ -517,7 +527,7 @@ t_r2_3 <- t(r2_3)
 knitr::kable(t_r2_3)  
 
 ```
-Table 5. Model goodness-of-fit
+
   
 ```{r}
 #| label: fig-number
@@ -530,7 +540,7 @@ bubble_plot(mr_num,
 
 ```
 
-### 4) prey material type
+### 4. prey material type
 Our dataset includes two material types of prey: real/imitation and artificial abstract butterflies. Is there a significant difference in effect size between the two stimuli types?
 
 #### normal model
@@ -558,7 +568,6 @@ t_r2_4 <- t(r2_4)
 knitr::kable(t_r2_4)
 
 ```
-Table 6. Model goodness-of-fit
 
 ```{r}
 #| label: fig-stimuli
@@ -591,7 +600,7 @@ summary(mr_prey_type1)
 ```
 
 
-### 5) diameter/length (mm) 
+### 5. diameter/length (mm) 
 Does a larger pattern diameter/length improve predator avoidance?
 ```{r}
 mr_diameter <- rma.mv(yi = lnRR,
@@ -617,7 +626,6 @@ t_r2_5 <- t(r2_5)
 knitr::kable(t_r2_5)  
 
 ```
-Table 7. Model goodness-of-fit
 
 ```{r}
 #| label: fig-diameter
@@ -630,7 +638,7 @@ bubble_plot(mr_diameter,
 
 ```
 
-### 6) Total pattern area (mm²)
+### 6. Total pattern area (mm²)
 Does total pattern area affect predator avoidance?
 
 ```{r}
@@ -656,7 +664,6 @@ t_r2_6 <- t(r2_6)
 knitr::kable(t_r2_6)
 
 ```
-Table 8. Model goodness-of-fit
 
 ```{r}
 #| label: fig-total area
@@ -668,7 +675,7 @@ bubble_plot(mr_area_T,
             xlab = "Log-transformed pattern total area")
 ```
 
-### 7)  total area of prey surface (mm²)
+### 7. total area of prey surface (mm²)
 Does the total prey surface area affect predator avoidance?
 
 ```{r}
@@ -694,7 +701,6 @@ r2_7 <- round(r2_ml(mr_background), 4)
 t_r2_7 <- t(r2_7)
 knitr::kable(t_r2_7)  
 ```
-Table 9. Model goodness-of-fit
 
 ```{r}
 #| label: fig-background
@@ -707,7 +713,7 @@ bubble_plot(mr_background,
 
 ```
 
-### 8) Prey shape type
+### 8. Prey shape type
 Our dataset includes four types of prey type: real butterfly, abstract artificial butterfly, abstract artificial caterpillar, and abstract artificial prey. Is there a significant difference in effect size between these prey?
 
 ```{r}
@@ -743,7 +749,6 @@ t_r2_8 <- t(r2_8)
 knitr::kable(t_r2_8) 
 
 ```
-Table 10. Model goodness-of-fit
 
 ```{r}
 #| label: fig-shape
@@ -844,7 +849,7 @@ r2_ml(r2_diameter)
 
 ```
 It seems **pattern area** is a slightly better predictor than **diameter**.
-
+:::
 
 ## Meta-regressions: multi-moderator
 Third, We also ran a multi-moderator meta-regression model, including treatment stimulus pattern types, pattern area, the number of pattern shapes, and prey material type variables due to moderator correlations. 
@@ -873,7 +878,6 @@ t_r2_9 <- t(r2_9)
 knitr::kable(t_r2_9)  
 
 ```
-Table 11. Model goodness-of-fit
 
 
 ## Publication bias
@@ -1137,6 +1141,98 @@ r2_ml(mr_pre)
 ```
 :::
 
+# More information
+
+:::{.panel-tabset}
+## Bird tree 🦜
+```{r}
+#| label: fig-tree
+#| fig-cap: "Phylogenetic tree of bird species"
+
+trees <- read.nexus(here("data/bird_phy.nex"))
+plot(trees[1])
+```
+
+## Phylogenetic meta-analysis
+We tested whether phylogeny should be included in our analyses.
+```{r}  
+# data 
+dat_predator <- filter(dat_all, Dataset == "predator")
+
+# check if the tree is ultrametric
+# is.ultrametric(trees[[1]])
+# [1] TRUE
+
+# example of variance-covariance matrix
+vcv(trees[[1]], corr = T)
+
+# calculate lnRR and lnRR_var
+dat_pred <- effect_lnRR(dat_predator)
+dat_pred$Obs_ID <- 1:nrow(dat_pred)
+V <- vcalc(lnRR_var, cluster = Cohort_ID, subgroup = Obs_ID, data = dat_pred)
+
+# create function to run meta-analysis for 50 trees
+phy_model <- function(cor_tree = vcv_tree){
+            model <- rma.mv(yi = lnRR,
+                            V = V,
+                            random = list(~1 | Study_ID,
+                                          ~1 | Shared_control_ID,
+                                          ~1 | Cohort_ID,
+                                          ~1 | Obs_ID,
+                                          ~1 | Bird_species,
+                                          ~1 | Phylogeny),
+                            R = list(Phylogeny = cor_tree),
+                            test = "t",
+                            method = "REML",
+                            sparse = TRUE,
+                            data = dat_pred)
+  model
+}
+
+# running 50 meta-analyses with 50 different trees
+# We got 1000 phylogenetic trees from BirdTree.org (https://birdtree.org)
+# Only 50 trees are used as in Nakagawa & Villemereuil (2019)(https://doi.org/10.1093/sysbio/syy089)
+
+tree_50 <- trees[1:50]
+vcv_tree_50 <- map(tree_50, ~vcv(.x, corr = TRUE))
+ma_50 <- mclapply(vcv_tree_50, phy_model) # detectCores() = 12
+
+# always best to save RDS files for analysis 
+# which takes more than a min or so 
+# saveRDS(ma_50, here("Rdata", "ma_50.RDS")) 
+
+ma_50 <- readRDS(here("Rdata", "ma_50.RDS"))
+
+# combining the results
+est_50 <- map_dbl(ma_50, ~ .x$b[[1]])
+se_50 <-  map_dbl(ma_50, ~ .x$se)
+df_50 <- c(rbind(est_50, se_50))
+
+# creating an array required by pool.mi
+my_array <- array(df_50, dim = c(1, 2, 50))
+
+pool.mi(my_array)
+
+# extract sigma^2 for averaging variance components
+sigma2_mod <- do.call(rbind, lapply(ma_50, function(x) x$sigma2))
+sigma2_mod <- data.frame(sigma2_mod)
+
+colnames(sigma2_mod) <- c("sigma^2.1_Study_ID", "sigma^2.2_SharedControl_ID", 
+                          "sigma^2.3_Cohort_ID", "sigma^2.4_Obs_ID", 
+                          "sigma^2.5_BirdSpecies", "sigma^2.6_Phylogeny")
+
+# easier to undersatnd if you round
+round(colMeans(sigma2_mod), 2)
+```
+
+## Data of Butterfly eyespots 🦋
+```{r}
+
+butterfly <- read.csv(here("data/butterfly_eyespots.csv"), header = T, fileEncoding = "CP932")
+datatable(butterfly, extensions = "Buttons")
+```
+:::
+
 # Figure gallery
 These were the basis for the final figures presented in the paper.
 
@@ -1292,97 +1388,6 @@ p12 <- bubble_plot(multi_bias,
 
 p11 / p12 +  plot_annotation(tag_levels = 'a')
 
-```
-:::
-
-# More information
-
-:::{.panel-tabset}
-## Bird tree 🦜
-```{r}
-#| label: fig-tree
-#| fig-cap: "Phylogenetic tree of bird species"
-
-trees <- read.nexus(here("data/bird_phy.nex"))
-plot(trees[1])
-```
-
-## Phylogenetic meta-analysis
-We tested whether phylogeny should be included in our analyses.
-```{r}  
-# data 
-dat_predator <- filter(dat_all, Dataset == "predator")
-
-# check if the tree is ultrametric
-# is.ultrametric(trees[[1]])
-# [1] TRUE
-
-# example of variance-covariance matrix
-vcv(trees[[1]], corr = T)
-
-# calculate lnRR and lnRR_var
-dat_pred <- effect_lnRR(dat_predator)
-dat_pred$Obs_ID <- 1:nrow(dat_pred)
-V <- vcalc(lnRR_var, cluster = Cohort_ID, subgroup = Obs_ID, data = dat_pred)
-
-# create function to run meta-analysis for 50 trees
-phy_model <- function(cor_tree = vcv_tree){
-            model <- rma.mv(yi = lnRR,
-                            V = V,
-                            random = list(~1 | Study_ID,
-                                          ~1 | Shared_control_ID,
-                                          ~1 | Cohort_ID,
-                                          ~1 | Obs_ID,
-                                          ~1 | Bird_species,
-                                          ~1 | Phylogeny),
-                            R = list(Phylogeny = cor_tree),
-                            test = "t",
-                            method = "REML",
-                            sparse = TRUE,
-                            data = dat_pred)
-  model
-}
-
-# running 50 meta-analyses with 50 different trees
-# We got 1000 phylogenetic trees from BirdTree.org (https://birdtree.org)
-# Only 50 trees are used as in Nakagawa & Villemereuil (2019)(https://doi.org/10.1093/sysbio/syy089)
-
-tree_50 <- trees[1:50]
-vcv_tree_50 <- map(tree_50, ~vcv(.x, corr = TRUE))
-ma_50 <- mclapply(vcv_tree_50, phy_model) # detectCores() = 12
-
-# always best to save RDS files for analysis 
-# which takes more than a min or so 
-# saveRDS(ma_50, here("Rdata", "ma_50.RDS")) 
-
-ma_50 <- readRDS(here("Rdata", "ma_50.RDS"))
-
-# combining the results
-est_50 <- map_dbl(ma_50, ~ .x$b[[1]])
-se_50 <-  map_dbl(ma_50, ~ .x$se)
-df_50 <- c(rbind(est_50, se_50))
-
-# creating an array required by pool.mi
-my_array <- array(df_50, dim = c(1, 2, 50))
-
-pool.mi(my_array)
-
-# extract sigma^2 for averaging variance components
-sigma2_mod <- do.call(rbind, lapply(ma_50, function(x) x$sigma2))
-sigma2_mod <- data.frame(sigma2_mod)
-
-colnames(sigma2_mod) <- c("sigma^2.1_Study_ID", "sigma^2.2_SharedControl_ID", 
-                          "sigma^2.3_Cohort_ID", "sigma^2.4_Obs_ID", 
-                          "sigma^2.5_BirdSpecies", "sigma^2.6_Phylogeny")
-
-# easier to undersatnd if you round
-round(colMeans(sigma2_mod), 2)
-```
-
-## Data of Butterfly eyespots 🦋
-```{r}
-butterfly <- read.csv(here("data/butterfly_eyespots.csv"), header = T, fileEncoding = "CP932")
-datatable(butterfly, extensions = "Buttons")
 ```
 :::
 
