@@ -1,58 +1,4 @@
----
-title: "Systematic review and meta-analysis of anti-predator mechanism of eyespots: conspicuous pattern vs eye mimicry"
-# author: "**Mizuno et al.**"
-date: "`r Sys.Date()`"
-format: 
-  html:
-    toc: true
-    toc-location: left
-    toc-depth: 3
-    toc-float: true
-    toc-title: "**CONTENTS**"
-    output-file: "index.html"
-    embed-resources: true
-    code-fold: true
-    code-tools: 
-      source: false
-    number-sections: true
-    #bibliography: ./bib/ref.bib
-    fontsize: "12"
-    mainfont: "Gill Sans"
-    monofont: "Courier"
-    fontcolor: ""
-    page-layout: article
-    code-overflow: wrap
-    df_print: paged
-    theme: united
-    code-line-numbers: false　　
-    grid:
-      margin-width: 180px　
-crossref: 
-  fig-title: Figure     # (default is "Figure")
-  tbl-title: Table     # (default is "Table")
-  title-delim:  —     # (default is ":")
-  fig-prefix: Fig.   # (default is "Figure")
-  tbl-prefix: Table.    # (default is "Table")
-editor_options: 
-  chunk_output_type: console
-execute:
-  warning: false
-  message: false
-  tidy: true
-  #cache: true
----
-# Summary
-This page contains the all code and data of *Systematic review and meta-analysis of eyespot anti-predator mechanisms: conspicuous patterns vs. eye mimicry*. Our meta-analytical study examined why butterfly eyespots intimidate birds and tested two hypotheses: the eye mimicry hypothesis and the conspicuousness hypothesis. Despite the existence of conflicting past empirical research, our results supported the idea of the conspicuousness hypothesis. We also found a key factor: larger eyespots were more effective in predator avoidance. Our findings suggest that birds avoid eyespots mainly due to their conspicuousness and emphasise the importance of such pattern characteristics in predator avoidance.
-
-
-# Setting ups
-
-## Load packages and custom function
-Load packages, custom function, and dataset.
-Custom function is used for calculating the point estimate and sampling variance (var) of lnRR can be then calculated from raw data.
-
-```{r}
-
+# Load packages and custom function
 pacman::p_load(ape,
                GoodmanKruskal,
                DT,
@@ -264,24 +210,8 @@ effect_lnRR <- function(dt) {
   return(dt1)
 }
 
-# setting tables
-options(DT.options = list(dom = "Blfrtip",
-                          scrollX = TRUE,
-                          pageLength = 5,
-                          columnDefs = list(list(targets = '_all', 
-                                                 className = 'dt-center')),
-                          buttons = c('copy', 'csv', 'excel', 'pdf')))
 
-```
-
-## Dataset for analysis
-
-::: {.panel-tabset}
-
-### Dataset
-We calculated lnRR and lnRR variance and prepared the dataset for analysis. After that, we added effect size ID (obs_ID), calculated the lnRR and variance-covariance matrix (VCV), and log-transformed moderators.
-
-```{r}
+# Dataset for analysis
 
 # read raw data()
 dat_all <-  read.csv(here("data/all.csv"), header = T, fileEncoding = "CP932")
@@ -309,45 +239,14 @@ dt_all$Log_area_pattern_T  <- log(dt_all$Area_pattern * dt_all$Number_pattern)
 dt_all <- dt_all %>%
   mutate_if(is.character, as.factor)
 
-```
-
-```{r}
-#| echo: false
-
-datatable(dt_all, extensions = "Buttons")
-
-```
-
-### effect size distribution
-These are the distributions of effect size and its variance.
-```{r}
-#| label: fig-histogram
-#| layout-ncol: 2
-#| fig-cap: 
-#|   - "lnRR"
-#|   - "lnRR variance"
-
 hist(dt_all$lnRR)
 hist(dt_all$lnRR_var)
-```
 
-### Description of dataset
-```{r}
-#| echo: false
-
-meta <- read.csv(here("data/metadata.csv"), header = T, fileEncoding = "CP932")
-datatable(meta, extensions = "Buttons")
-
-```
-:::
 
 # Let's meta-analysis and meta-regressions
 
-## Meta-analysis: overall effect size
+# Meta-analysis: overall effect size
 
-First, we run meta-analytical models to calculate total I2 (a measure of heterogeneity not caused by sampling error; Higgins et al. 2003) and the partial I2 explained by each random factor.
-
-```{r}
 ma_all <- rma.mv(yi = lnRR,
                   V = VCV, 
                   random = list(~1 | Study_ID,
@@ -363,30 +262,10 @@ summary(ma_all)
 
 i2 <- round(i2_ml(ma_all), 4)
 r2 <- round(r2_ml(ma_all), 4)
-
-```
-
-
-```{r}
-#| echo: false
-
 t_i2 <- t(i2)
 t_r2 <- t(r2)
 knitr::kable(t_i2)
 knitr::kable(t_r2)
-
-```
-
-::: callout-note
-## Which random effects are removed in our models?
-
-We can remove _Shared control ID_ and _Cohort ID_
-:::
-
-```{r}
-#| label: fig-ma_all
-#| fig-cap: "Estimates of overall effect size and 95% confidence intervals"
-#| fig-cap-location: bottom
 
 orchard_plot(ma_all,
               group = "Study_ID",
@@ -396,20 +275,13 @@ orchard_plot(ma_all,
               scale_colour_brewer(palette = "Accent") +
               scale_fill_brewer(palette = "Accent") 
 
-```
 
-## Meta-regressions: uni-moderator
-Next, we performed uni-moderator meta-regression models with each of seven moderators: 1) treatment stimulus pattern types (eyespots vs. non-eyespots), 2) pattern area, 3) the number of pattern shapes, 4) prey material type, 5) maximum pattern diameter/length, 6) total pattern area, 7) total area of prey surface, and 8) prey shape type. 
+# Meta-regressions: uni-moderator
 
-We used log-transformed data for pattern area, total pattern area, total area of prey surface, and pattern maximum diameter/length in our analysis to normalise these moderators. 
+## 1. pattern type
 
-:::{.panel-tabset}
-
-### 1. pattern type
-Eyespot vs. non-eyespot patterns - is there a significant difference of effect size between two types of patterns?
-
-#### normal model
-```{r}
+## Eyespot vs. non-eyespot patterns 
+### normal model
 
 mr_eyespot <- rma.mv(yi = lnRR,
                     V = VCV, 
@@ -424,19 +296,10 @@ mr_eyespot <- rma.mv(yi = lnRR,
 summary(mr_eyespot)
 
 r2_1 <- round(r2_ml(mr_eyespot), 4)
-
-```
-
-```{r}
-#| echo: false
-
 t_r2_1 <- t(r2_1)
 knitr::kable(t_r2_1)  
-```
 
-#### intercept-removed model
-```{r}
-# intercept-removed model 
+### intercept-removed model 
 mr_eyespot1 <- rma.mv(yi = lnRR,
                       V = VCV, 
                       mods = ~ Treatment_stimulus - 1,
@@ -449,12 +312,6 @@ mr_eyespot1 <- rma.mv(yi = lnRR,
 
 summary(mr_eyespot1)
 
-```
-
-```{r}
-#| label: fig-eyespot
-#| fig-cap: "Eyespot vs. non-eyespot patterns"
-
 orchard_plot(mr_eyespot,
             mod = "Treatment_stimulus",
             group = "Study_ID",
@@ -463,12 +320,9 @@ orchard_plot(mr_eyespot,
             scale_colour_brewer(palette = "Set2") +
             scale_fill_brewer(palette = "Set2")
 
-```
 
-### 2. pattern area (mm²)
-Does a larger pattern area improve predator avoidance?
+## 2. pattern area (mm²)
 
-```{r}
 mr_area <- rma.mv(yi = lnRR,
                   V = VCV, 
                   mods = ~ Log_area,
@@ -482,32 +336,17 @@ mr_area <- rma.mv(yi = lnRR,
 summary(mr_area)
 
 r2_2 <- round(r2_ml(mr_area), 4)
-
-```
-
-```{r}
-#| echo: false
-
 t_r2_2 <- t(r2_2)
 knitr::kable(t_r2_2)  
-
-```
-
-```{r}
-#| label: fig-area
-#| fig-cap: "Effect size and each pattern area"
 
 bubble_plot(mr_area,
             mod = "Log_area",
             group = "Study_ID",
             xlab = "Log-transformed area")
 
-```
 
-### 3. the number of pattern shapes
-Does the number of pattern shapes affect predator avoidance?
+## 3. the number of pattern shapes
 
-```{r}
 mr_num <- rma.mv(yi = lnRR,
                   V = VCV,
                   mods = ~ Number_pattern,
@@ -521,34 +360,18 @@ mr_num <- rma.mv(yi = lnRR,
 summary(mr_num)
 
 r2_3 <- round(r2_ml(mr_num), 4)
-
-```
-
-```{r}
-#| echo: false
-
 t_r2_3 <- t(r2_3)
 knitr::kable(t_r2_3)  
-
-```
-
-  
-```{r}
-#| label: fig-number
-#| fig-cap: "Effect size and number of patterns"
 
 bubble_plot(mr_num,
             mod = "Number_pattern",
             group = "Study_ID",
             xlab = "Number of patterns") 
 
-```
 
-### 4. prey material type
-Our dataset includes two material types of prey: real/imitation and artificial abstract butterflies. Is there a significant difference in effect size between the two stimuli types?
+## 4. prey material type
+### normal model
 
-#### normal model
-```{r}
 mr_prey_type <- rma.mv(yi = lnRR,
                   V = VCV, 
                   mods = ~ Type_prey,
@@ -562,20 +385,8 @@ mr_prey_type <- rma.mv(yi = lnRR,
 summary(mr_prey_type)
 
 r2_4 <- round(r2_ml(mr_prey_type), 4)
-
-```
-
-```{r}
-#| echo: false
-
 t_r2_4 <- t(r2_4)
 knitr::kable(t_r2_4)
-
-```
-
-```{r}
-#| label: fig-stimuli
-#| fig-cap: "Effect size and prey type - real vs. abstract"
 
 orchard_plot(mr_prey_type,
               mod = "Type_prey",
@@ -585,10 +396,9 @@ orchard_plot(mr_prey_type,
               scale_colour_brewer(palette = "Set3") +
               scale_fill_brewer(palette = "Set3")
 
-```
 
-#### intercept-removed model
-```{r}
+### intercept-removed model
+
 mr_prey_type1 <- rma.mv(yi = lnRR,
                         V = VCV, 
                         mods = ~ Type_prey -1,
@@ -601,12 +411,9 @@ mr_prey_type1 <- rma.mv(yi = lnRR,
 
 summary(mr_prey_type1)
 
-```
 
+## 5. diameter/length (mm) 
 
-### 5. diameter/length (mm) 
-Does a larger pattern diameter/length improve predator avoidance?
-```{r}
 mr_diameter <- rma.mv(yi = lnRR,
                       V = VCV, 
                       mods = ~ Log_diameter,
@@ -620,32 +427,17 @@ mr_diameter <- rma.mv(yi = lnRR,
 summary(mr_diameter)
 
 r2_5 <- round(r2_ml(mr_diameter), 4)
-
-```
-
-```{r}
-#| echo: false
-
 t_r2_5 <- t(r2_5)
 knitr::kable(t_r2_5)  
-
-```
-
-```{r}
-#| label: fig-diameter
-#| fig-cap: "Effect size and pattern diameter"
 
 bubble_plot(mr_diameter,
             mod = "Log_diameter",
             group = "Study_ID",
             xlab = "Log-transformed diameter")
 
-```
 
-### 6. Total pattern area (mm²)
-Does total pattern area affect predator avoidance?
+## 6. Total pattern area (mm²)
 
-```{r}
 mr_area_T  <- rma.mv(yi = lnRR,
                   V = VCV, 
                   mods = ~ Log_area_pattern_T ,
@@ -659,20 +451,8 @@ mr_area_T  <- rma.mv(yi = lnRR,
 summary(mr_area_T)
 
 r2_6 <- round(r2_ml(mr_area_T), 4)
-
-```
-
-```{r}
-#| echo: false
-
 t_r2_6 <- t(r2_6)
 knitr::kable(t_r2_6)
-
-```
-
-```{r}
-#| label: fig-total area
-#| fig-cap: "Effect size and total pattern area"
 
 bubble_plot(mr_area_T,
             mod = "Log_area_pattern_T",
@@ -680,10 +460,7 @@ bubble_plot(mr_area_T,
             xlab = "Log-transformed pattern total area")
 ```
 
-### 7. total area of prey surface (mm²)
-Does the total prey surface area affect predator avoidance?
-
-```{r}
+## 7. total area of prey surface (mm²)
 
 mr_background <- rma.mv(yi = lnRR,
                         V = VCV, 
@@ -698,30 +475,16 @@ mr_background <- rma.mv(yi = lnRR,
 summary(mr_background)
 
 r2_7 <- round(r2_ml(mr_background), 4)
-
-```
-```{r}
-#| echo: false
-
 t_r2_7 <- t(r2_7)
 knitr::kable(t_r2_7)  
-```
-
-```{r}
-#| label: fig-background
-#| fig-cap: "Effect size and total prey surface area"
 
 bubble_plot(mr_background,
             mod = "Log_background",
             group = "Study_ID",
             xlab = "Log-transformed total prey surface area")
 
-```
 
-### 8. Prey shape type
-Our dataset includes four types of prey type: real butterfly, abstract artificial butterfly, abstract artificial caterpillar, and abstract artificial prey. Is there a significant difference in effect size between these prey?
-
-```{r}
+## 8. Prey shape type
 
 mr_prey_shape <- rma.mv(yi = lnRR,
                         V = VCV, 
@@ -736,6 +499,8 @@ mr_prey_shape <- rma.mv(yi = lnRR,
 summary(mr_prey_shape)
 
 r2_8 <- round(r2_ml(mr_prey_shape), 4)
+t_r2_8 <- t(r2_8)
+knitr::kable(t_r2_8) 
 
 dat_all$Shape_prey <- factor(dat_all$Shape_prey)
 levels(dat_all$Shape_prey)
@@ -745,20 +510,6 @@ sig_test <- summary(glht(mr_prey_shape, linfct= mat_ex), test = adjusted("none")
 
 sig_test
 
-```
-
-```{r}
-#| echo: false
-
-t_r2_8 <- t(r2_8)
-knitr::kable(t_r2_8) 
-
-```
-
-```{r}
-#| label: fig-shape
-#| fig-cap: "Effect size and prey shape"
-
 orchard_plot(mr_prey_shape,
               mod = "Shape_prey",
               group = "Study_ID",
@@ -767,39 +518,28 @@ orchard_plot(mr_prey_shape,
               scale_colour_brewer(palette = "Set3") +
               scale_fill_brewer(palette = "Set3") 
 
-```
-:::
+# Correlation visualisation and choosing moderators
+# Before we run multi-moderator meta-regressions, we need to consider the correlation between moderators. Area, diameter and background seem to be correlated. Therefore, we visualised the correlation between these variables.
 
-## Correlation visualisation and choosing moderators
-Before we run multi-moderator meta-regressions, we need to consider the correlation between moderators. Area, diameter and background seem to be correlated. Therefore, we visualised the correlation between these variables.
+## Correlation between continuous variables
 
-:::{.panel-tabset}
+corr_cont <- round(cor(dt_all[, c("Diameter_pattern", "Area_pattern", 
+                    "Number_pattern","Log_area_pattern_T", "Area_background")]),2)
 
-### Visualisation of correlation
+p_cont <- ggcorrplot(corr_cont, hc.order = TRUE, lab = TRUE, 
+                    outline.col = "white", colors = c("#6D9EC1", "white", "#E46726"), 
+                    title = "(a) Continuous variables")
 
-#### Correlation between continuous variables
-```{r}
-#| label: fig-cor-continuous
-#| fig-cap: "Correlation between coninuous moderators"
-#| fig-width: 10
-#| fig-height: 5
+corr_cont_log <- round(cor(dt_all[, c("Log_diameter", "Log_area", 
+                    "Number_pattern","Log_area_pattern_T", "Log_background")]),2)
 
-corr_cont <- round(cor(dt_all[, c("Diameter_pattern", "Area_pattern", "Number_pattern","Log_area_pattern_T", "Area_background")]),2)
-
-p_cont <- ggcorrplot(corr_cont, hc.order = TRUE, lab = TRUE, outline.col = "white", colors = c("#6D9EC1", "white", "#E46726"), title = "(a) Continuous variables")
-
-corr_cont_log <- round(cor(dt_all[, c("Log_diameter", "Log_area", "Number_pattern","Log_area_pattern_T", "Log_background")]),2)
-
-p_cont_log <- ggcorrplot(corr_cont_log, hc.order = TRUE, lab = TRUE, outline.col = "white", colors = c("#6D9EC1", "white", "#E46726"), title = "(b) Log-transormed continuous variables")
+p_cont_log <- ggcorrplot(corr_cont_log, hc.order = TRUE, lab = TRUE, 
+                    outline.col = "white", colors = c("#6D9EC1", "white", "#E46726"), 
+                    title = "(b) Log-transormed continuous variables")
 
 p_cont + p_cont_log + plot_layout(guides = 'collect')
-```
-All were correlated except the number of pattern shapes.
 
-#### Correlation between continuous variables
-```{r}
-#| label: fig-cor-categorical
-#| fig-cap: "Correlation between categorical variables"
+## Correlation between continuous variables
 
 dat1 <- dt_all %>%
   dplyr::select("Treatment_stimulus", "Type_prey", "Shape_prey")
@@ -807,15 +547,9 @@ dat1 <- dt_all %>%
 corr_cat <- GKtauDataframe(dat1)
 plot(corr_cat)
 
-```
-We should not include "Shape_prey (prey material type)" and "Type_prey (prey shape type)" in the same model as they are correlated.
-
-### Choose moderators
-We used model R2 values to find better models and moderator VIF values to check multicollinearity between moderators. 
-Higher R2 indicates a better model, and VIF > 2 indicates multicollinearity. 
-
-**R2**
-```{r}
+## Choose moderators
+# We used model R2 values to find better models and moderator VIF values to check multicollinearity between moderators. 
+# Higher R2 indicates a better model, and VIF > 2 indicates multicollinearity. 
 
 r2_area <- rma.mv(yi = lnRR,
                   V = VCV,
@@ -852,14 +586,9 @@ r2_ml(r2_area)
 r2_ml(r2_area_T)
 r2_ml(r2_diameter)
 
-```
-It seems **pattern area** is a slightly better predictor than **diameter**.
-:::
-
-## Meta-regressions: multi-moderator
+# Meta-regressions: multi-moderator
 Third, We also ran a multi-moderator meta-regression model, including treatment stimulus pattern types, pattern area, the number of pattern shapes, and prey material type variables due to moderator correlations. 
 
-```{r}
 mr_all <- rma.mv(yi = lnRR,
                 V = VCV, 
                 mods = ~ Treatment_stimulus + Log_area 
@@ -872,33 +601,15 @@ mr_all <- rma.mv(yi = lnRR,
                 data = dt_all)
 
 summary(mr_all)
+
 r2_9 <- round(r2_ml(mr_all), 4)
-
-```
-
-```{r}
-#| echo: false
-
 t_r2_9 <- t(r2_9)
 knitr::kable(t_r2_9)  
 
-```
 
+# Publication bias
 
-## Publication bias
-Finally, we tested for publication bias using a funnel plot and Egger's test. We also checked the decline effect by adding the year of publication as a moderator to the meta-analysis model.
-
-:::{.panel-tabset}
-
-### Funnel plot
-```{r}
-#| layout-ncol: 2
-#| label: fig-funnel
-#| fig-cap: 
-#|   - "Effect size and its standard error"
-#|   - "Effect size and its inverse standard error"
-
-# funnel plot - standard error
+## funnel plot - standard error
 funnel(ma_all, yaxis = "sei",
       xlab = "Standarised residuals",
       ylab = "Precision (inverse of SE)" )
@@ -908,12 +619,8 @@ funnel(ma_all, yaxis = "seinv",
       xlab = "Standarised residuals",
       ylab = "Precision (inverse of SE)",  col = c(alpha("orange", 0.5)))
 
-```
 
-### Egger's test
-```{r}
-#| label: fig-egger
-#| fig-cap: "Egger's test of publication bias"
+## Egger's test
 
 df_bias <- dt_all %>% mutate(sqrt_inv_e_n = sqrt((Cn + Tn)/(Cn * Tn)))
 
@@ -934,12 +641,8 @@ bubble_plot(bias_model,
             group = "Study_ID",
             xlab = "Square root of inverse of effective sample size")
 
-```
 
-### Decline effect
-```{r}
-#| label: fig-decline
-#| fig-cap: "Decline effect"
+## Decline effect
 
 year_model <- rma.mv(yi = lnRR,
                       V = VCV, 
@@ -958,12 +661,8 @@ bubble_plot(year_model,
             group = "Study_ID",
             xlab = "Year of publication")
 
-```
 
-### Multi-moderator
-We also ran Egger's test and checked the decline effect in the multi-moderator model.
-
-```{r}
+## Multi-moderator
 
 multi_bias <- rma.mv(yi = lnRR,
                       V = VCV, 
@@ -989,18 +688,9 @@ bubble_plot(multi_bias,
             group = "Study_ID",
             xlab = "Year of publication")
 
-```
 
-:::
+# Additional analyses
 
-## Additional analyses
-
-:::{.panel-tabset}
-### Dataset
-We compared the effect size between two datasets (predator and prey) to see whether there was any difference in effect size between the two datasets.
-```{r}
-#| label: fig-dataset
-#| fig-cap: "Effect size and dataset - predator and prey"
 
 mr_dataset <- rma.mv(yi = lnRR,
                       V = VCV,
@@ -1020,12 +710,8 @@ orchard_plot(mr_dataset,
             xlab = "Dataset", 
             angle = 45) 
 
-```
 
 ### Total pattern area
-We also ran several multi-moderator models.
-
-```{r}
 
 mr_all_2 <- rma.mv(yi = lnRR,
                 V = VCV, 
@@ -1039,13 +725,9 @@ mr_all_2 <- rma.mv(yi = lnRR,
                 data = dt_all)
 summary(mr_all_2)
 
-```
 
-### Moderators associated with conspicuousness
-Multi-moderator model; only include moderators related to conspicuousness (pattern area/total pattern area and number of patterns) in the model.
-
-#### pattern area and number of patterns
-```{r}
+## Moderators associated with conspicuousness
+### pattern area and number of patterns
 
 mr_cons <- rma.mv(yi = lnRR,
                 V = VCV, 
@@ -1066,10 +748,9 @@ bubble_plot(mr_cons,
             group = "Study_ID",
             xlab = "Log-transformed area")
 
-```
 
-#### total pattern area and number of patterns
-```{r}
+### total pattern area and number of patterns
+
 mr_cons1 <- rma.mv(yi = lnRR,
                 V = VCV, 
                 mods = ~ Log_area_pattern_T + Number_pattern,
@@ -1089,10 +770,9 @@ bubble_plot(mr_cons1,
             group = "Study_ID",
             xlab = "Log-transformed area")
 
-```
 
-#### pattern area, number of patterns, and treatment stimulus
-```{r}
+### pattern area, number of patterns, and treatment stimulus
+
 mr_cons2 <- rma.mv(yi = lnRR,
                 V = VCV, 
                 mods = ~ Log_area + Number_pattern + Treatment_stimulus,
@@ -1107,10 +787,8 @@ summary(mr_cons2)
 
 r2_ml(mr_cons2)
 
-```
+### total pattern area, number of patterns, and treatment stimulus
 
-#### total pattern area, number of patterns, and treatment stimulus
-```{r}
 mr_cons3 <- rma.mv(yi = lnRR,
                 V = VCV, 
                 mods = ~ Log_area_pattern_T + Number_pattern + Treatment_stimulus,
@@ -1125,10 +803,9 @@ summary(mr_cons3)
 
 r2_ml(mr_cons3)
 
-```
 
-### Moderators associated with prey
-```{r}
+## Moderators associated with prey
+
 mr_pre <- rma.mv(yi = lnRR,
                 V = VCV, 
                 mods = ~ Treatment_stimulus + Type_prey,
@@ -1143,24 +820,17 @@ summary(mr_pre)
 
 r2_ml(mr_pre)
 
-```
-:::
 
 # More information
-
-:::{.panel-tabset}
-## Bird tree 🦜
-```{r}
-#| label: fig-tree
-#| fig-cap: "Phylogenetic tree of bird species"
+## Bird tree 
 
 trees <- read.nexus(here("data/bird_phy.nex"))
 plot(trees[1])
-```
+
 
 ## Check phylogenetic relatedness
-We tested whether phylogeny should be included in our analyses.
-```{r}  
+## We tested whether phylogeny should be included in our analyses.
+
 # data 
 dat_predator <- filter(dat_all, Dataset == "predator")
 
@@ -1228,26 +898,12 @@ colnames(sigma2_mod) <- c("sigma^2.1_Study_ID", "sigma^2.2_SharedControl_ID",
 
 # easier to undersatnd if you round
 round(colMeans(sigma2_mod), 2)
-```
 
-## Data of Butterfly eyespots 🦋
-```{r}
-
-butterfly <- read.csv(here("data/butterfly_eyespots.csv"), header = T, fileEncoding = "CP932")
-datatable(butterfly, extensions = "Buttons")
-```
-:::
 
 # Figure gallery
-These were the basis for the final figures presented in the paper.
+# These were the basis for the final figures presented in the paper.
 
-:::{.panel-tabset}
-### Discrete moderators
-```{r}
-#| label: fig-galary1
-#| fig-cap: 
-#|   - "main figure - discrete moderators"
-#|   - "Prey type"
+## Discrete moderators
 
 # extract the results of each model and combine them into one data frame for plotting
 main  <- mod_results(ma_all, group = "Study_ID")
@@ -1280,14 +936,7 @@ p2 <- orchard_plot(mr_prey_shape,
                   scale_fill_brewer(palette = "YlGnBu")
 p2
 
-```
-
-### Continuous moderators
-```{r}
-#| label: fig-galary2
-#| fig-cap:
-#|  - "main figure - continuous moderators"
-#|  - "pattern area"
+## Continuous moderators
 
 # these figs were created by multi meta-regression model results using the log-transformed area
 
@@ -1333,15 +982,8 @@ p7 <- bubble_plot(mr_background,
 
 p5 / p6 /p7 + plot_annotation(tag_levels = "a")
 
-```
 
-### Publication bias
-```{r}
-#| label: fig-galary3
-#| fig-cap: 
-#|    - "Funnel plot"
-#|    - "Egger's test and Decline effect"
-
+## Publication bias
 
 # funnel plot
 
@@ -1374,12 +1016,8 @@ p9 <- bubble_plot(year_model,
 pub <- p8 / p9
 pub +  plot_annotation(tag_levels = 'a') 
 
-```
 
-### Publication bias (multi-moderator)
-```{r}
-#| label: fig-galary4
-#| fig-cap: "Egger's test and Decline effect (multi-moderator)"
+## Publication bias (multi-moderator)
 
 p10 <- bubble_plot(multi_bias,
             mod = "sqrt_inv_e_n",
@@ -1392,15 +1030,3 @@ p11 <- bubble_plot(multi_bias,
             xlab = "Year of publication")
 
 p10 / p11 +  plot_annotation(tag_levels = 'a')
-
-```
-:::
-
-
-# R session information
-```{r}
-#| echo: false
-
-sessionInfo() %>% pander::pander()
-
-```
