@@ -318,7 +318,7 @@ datatable(dt_all, extensions = "Buttons")
 
 ```
 
-### effect size distribution
+### Effect size distribution
 These are the distributions of effect size and its variance.
 ```{r}
 #| label: fig-histogram
@@ -405,10 +405,10 @@ We used log-transformed data for pattern area, total pattern area, total area of
 
 :::{.panel-tabset}
 
-### 1. pattern type
+### 1. Pattern type
 Eyespot vs. non-eyespot patterns - is there a significant difference of effect size between two types of patterns?
 
-#### normal model
+#### Normal model
 ```{r}
 
 mr_eyespot <- rma.mv(yi = lnRR,
@@ -434,7 +434,7 @@ t_r2_1 <- t(r2_1)
 knitr::kable(t_r2_1)  
 ```
 
-#### intercept-removed model
+#### Intercept-removed model
 ```{r}
 # intercept-removed model 
 mr_eyespot1 <- rma.mv(yi = lnRR,
@@ -465,7 +465,7 @@ orchard_plot(mr_eyespot,
 
 ```
 
-### 2. pattern area (mm²)
+### 2. Pattern area (mm²)
 Does a larger pattern area improve predator avoidance?
 
 ```{r}
@@ -504,7 +504,7 @@ bubble_plot(mr_area,
 
 ```
 
-### 3. the number of pattern shapes
+### 3. The number of pattern shapes
 Does the number of pattern shapes affect predator avoidance?
 
 ```{r}
@@ -544,10 +544,10 @@ bubble_plot(mr_num,
 
 ```
 
-### 4. prey material type
+### 4. Prey material type
 Our dataset includes two material types of prey: real/imitation and artificial abstract butterflies. Is there a significant difference in effect size between the two stimuli types?
 
-#### normal model
+#### Normal model
 ```{r}
 mr_prey_type <- rma.mv(yi = lnRR,
                   V = VCV, 
@@ -587,7 +587,7 @@ orchard_plot(mr_prey_type,
 
 ```
 
-#### intercept-removed model
+#### Intercept-removed model
 ```{r}
 mr_prey_type1 <- rma.mv(yi = lnRR,
                         V = VCV, 
@@ -604,7 +604,7 @@ summary(mr_prey_type1)
 ```
 
 
-### 5. diameter/length (mm) 
+### 5. Diameter/length (mm) 
 Does a larger pattern diameter/length improve predator avoidance?
 ```{r}
 mr_diameter <- rma.mv(yi = lnRR,
@@ -680,7 +680,7 @@ bubble_plot(mr_area_T,
             xlab = "Log-transformed pattern total area")
 ```
 
-### 7. total area of prey surface (mm²)
+### 7. Total area of prey surface (mm²)
 Does the total prey surface area affect predator avoidance?
 
 ```{r}
@@ -857,7 +857,7 @@ It seems **pattern area** is a slightly better predictor than **diameter**.
 :::
 
 ## Meta-regressions: multi-moderator
-Third, We also ran a multi-moderator meta-regression model, including treatment stimulus pattern types, pattern area, the number of pattern shapes, and prey material type variables due to moderator correlations. 
+Third, we also ran a multi-moderator meta-regression model, including treatment stimulus pattern types, pattern area, the number of pattern shapes, and prey material type variables due to moderator correlations. 
 
 ```{r}
 mr_all <- rma.mv(yi = lnRR,
@@ -996,6 +996,7 @@ bubble_plot(multi_bias,
 ## Additional analyses
 
 :::{.panel-tabset}
+
 ### Dataset
 We compared the effect size between two datasets (predator and prey) to see whether there was any difference in effect size between the two datasets.
 ```{r}
@@ -1068,7 +1069,7 @@ bubble_plot(mr_cons,
 
 ```
 
-#### total pattern area and number of patterns
+#### Total pattern area and number of patterns
 ```{r}
 mr_cons1 <- rma.mv(yi = lnRR,
                 V = VCV, 
@@ -1091,7 +1092,7 @@ bubble_plot(mr_cons1,
 
 ```
 
-#### pattern area, number of patterns, and treatment stimulus
+#### Pattern area, number of patterns, and treatment stimulus
 ```{r}
 mr_cons2 <- rma.mv(yi = lnRR,
                 V = VCV, 
@@ -1109,7 +1110,7 @@ r2_ml(mr_cons2)
 
 ```
 
-#### total pattern area, number of patterns, and treatment stimulus
+#### Total pattern area, number of patterns, and treatment stimulus
 ```{r}
 mr_cons3 <- rma.mv(yi = lnRR,
                 V = VCV, 
@@ -1158,7 +1159,7 @@ trees <- read.nexus(here("data/bird_phy.nex"))
 plot(trees[1])
 ```
 
-## Check phylogenetic relatedness
+## Check phylogenetic relatedness 🌲
 We tested whether phylogeny should be included in our analyses.
 ```{r}  
 # data 
