@@ -1,5 +1,5 @@
 ---
-title: "Systematic review and meta-analysis of anti-predator mechanism of eyespots: conspicuous pattern vs eye mimicry"
+title: "A systematic review and meta-analysis of eyespot anti-predator mechanisms"
 # author: "**Mizuno et al.**"
 date: "`r Sys.Date()`"
 format: 
@@ -360,8 +360,8 @@ ma_all <- rma.mv(yi = lnRR,
                   data = dt_all)
 
 summary(ma_all)
-
-i2 <- round(i2_ml(ma_all), 4)
+orchaRd::i2_ml(ma_all)
+i2 <- round(orchaRd::i2_ml(ma_all), 4)
 r2 <- round(r2_ml(ma_all), 4)
 
 ```
